@@ -11783,7 +11783,7 @@ html,body{height:100%;overflow:hidden;font-family:'Tajawal',sans-serif;backgroun
 // Firebase config — مشروع awalem-game ✅
 const FB_CONFIG = {
   apiKey: "AIzaSyB7dxh49AS3EMjU_IbkPyJInX1Fe7DsaPA",
-  authDomain: "amjadmajed132010-oss.github.io",
+  authDomain: "awalem-game.firebaseapp.com",
   databaseURL: "https://awalem-game-default-rtdb.firebaseio.com",
   projectId: "awalem-game",
   storageBucket: "awalem-game.firebasestorage.app",
@@ -12496,28 +12496,13 @@ async function doGoogleLogin() {
     provider.addScope('profile');
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    const isMobile = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    if (isMobile) {
-      // الموبايل: نستخدم popup مع authDomain الخاص بـ Firebase
-      provider.setCustomParameters({ 
-        prompt: 'select_account',
-        redirect_uri: 'https://awalem-game.firebaseapp.com/__/auth/handler'
-      });
-      if (btn) btn.textContent = '↩️ جاري التحويل...';
-      await firebase.auth().signInWithRedirect(provider);
-      return;
-    }
-
-    // الديسكتوب: popup
+    // نستخدم popup على الجوال والديسكتوب معاً
     try {
       const cred = await firebase.auth().signInWithPopup(provider);
       await _handleGoogleUser(cred.user);
     } catch(popupErr) {
       if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/cancelled-popup-request') {
-        // Fallback: redirect
-        if (btn) btn.textContent = '↩️ جاري التحويل...';
-        await firebase.auth().signInWithRedirect(provider);
+        showAuthError('يرجى السماح بالنوافذ المنبثقة في المتصفح لتسجيل الدخول بـ Google');
       } else if (popupErr.code !== 'auth/popup-closed-by-user') {
         throw popupErr;
       } else {
