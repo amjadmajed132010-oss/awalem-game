@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عوالم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a14;--bg2:#0f0f1e;--card:#1a1a30;--border:rgba(255,255,255,0.07);
+  --text:#e8e6ff;--muted:#5a587a;--acc:#7c6ff7;--green:#3ba55c;--red:#ed4245;
+}
+body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+#app{display:none;height:100vh;display:flex}
+#serverList{width:72px;background:var(--bg);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:8px;overflow-y:auto;border-left:1px solid var(--border)}
+.sv-item{width:48px;height:48px;border-radius:24px;background:var(--bg2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;font-weight:800;color:var(--muted);transition:.2s}
+.sv-item:hover,.sv-item.active{border-radius:16px;background:var(--acc);color:#fff}
+.sv-sep{width:32px;height:2px;background:var(--border);border-radius:2px;margin:4px 0}
+.sv-add{color:var(--green)}
+.sv-add:hover{background:var(--green)!important;color:#fff!important}
+#channelSidebar{width:240px;background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;border-left:1px solid var(--border)}
+.ch-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ch-server-name{font-size:15px;font-weight:800}
+.ch-header-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:.2s}
+.ch-header-icon:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.ch-list{flex:1;overflow-y:auto;padding:8px 0}
+.ch-section-title{font-size:11px;font-weight:700;color:var(--muted);padding:12px 16px 4px;text-transform:uppercase}
+.ch-item{display:flex;align-items:center;gap:6px;padding:7px 12px 7px 16px;border-radius:6px;margin:1px 8px;cursor:pointer;transition:.15s;color:var(--muted);font-size:14px}
+.ch-item:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.ch-item.active{background:rgba(124,111,247,.15);color:var(--text)}
+.ch-item-icon{font-size:16px;opacity:.7}
+.ch-item-name{flex:1}
+.voice-connected{background:var(--bg);border-top:1px solid var(--border);padding:8px;display:none;flex-direction:column;gap:4px}
+.voice-connected.show{display:flex}
+.vc-info{color:var(--green);font-size:12px;font-weight:700;padding:4px 8px}
+.vc-btn{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.05);border:none;color:var(--muted);cursor:pointer;transition:.15s;font-size:14px}
+.vc-btn:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.vc-btn.muted{background:rgba(237,66,69,.15);color:var(--red)}
+.user-panel{height:56px;background:var(--bg);border-top:1px solid var(--border);padding:0 8px;display:flex;align-items:center;gap:8px}
+.up-av{width:34px;height:34px;border-radius:50%;background:var(--acc);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+.up-info{flex:1;min-width:0}
+.up-name{font-size:13px;font-weight:700}
+.up-tag{font-size:11px;color:var(--muted)}
+.up-btn{width:30px;height:30px;border-radius:6px;background:transparent;border:none;color:var(--muted);cursor:pointer;transition:.2s;font-size:16px}
+.up-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+#mainContent{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{height:48px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;background:var(--bg)}
+.main-header-icon{font-size:20px;color:var(--muted)}
+.main-header-name{font-size:15px;font-weight:700}
+#messagesArea{flex:1;overflow-y:auto;padding:16px 0;display:flex;flex-direction:column;gap:2px}
+.msg-group{display:flex;gap:16px;padding:4px 16px;border-radius:4px}
+.msg-av{width:40px;height:40px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.msg-body{flex:1}
+.msg-meta{display:flex;gap:8px;margin-bottom:4px}
+.msg-name{font-size:14px;font-weight:700}
+.msg-time{font-size:11px;color:var(--muted)}
+.msg-content{font-size:14px;line-height:1.55}
+.chat-input-wrap{padding:16px}
+.chat-input-box{background:var(--card);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.chat-input-top{display:flex;align-items:flex-end;padding:0 4px 0 0}
+.chat-inp{flex:1;background:transparent;border:none;color:var(--text);font-family:Tajawal,sans-serif;font-size:14px;padding:12px;outline:none;resize:none;min-height:44px;max-height:200px}
+.chat-inp::placeholder{color:var(--muted)}
+.ci-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:none;color:var(--muted);cursor:pointer;transition:.2s;margin-bottom:4px;font-size:18px}
+.ci-btn:hover{color:var(--text)}
+.ci-btn.send{background:var(--acc);color:#fff;opacity:.5}
+.ci-btn.send.active{opacity:1}
+.modal-bg{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border-radius:20px;padding:24px;width:460px;max-width:calc(100vw - 32px);position:relative}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.modal-inp{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:Tajawal,sans-serif;font-size:14px;padding:10px 14px;outline:none;margin-bottom:12px}
+.modal-inp:focus{border-color:var(--acc)}
+.modal-btn{width:100%;padding:12px;border-radius:10px;border:none;background:var(--acc);color:#fff;font-size:14px;font-weight:700;font-family:Tajawal,sans-serif;cursor:pointer;transition:.2s}
+.modal-btn:hover{background:#5b4fd4}
+.modal-btn.secondary{background:var(--bg2);color:var(--text);margin-top:8px}
+.modal-btn.danger{background:var(--red)}
+.modal-close{position:absolute;top:16px;left:16px;width:32px;height:32px;border-radius:50%;background:var(--bg2);border:none;cursor:pointer;color:var(--muted);font-size:18px}
+#loginScreen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-card{background:var(--card);border-radius:20px;padding:40px 32px;width:420px;max-width:calc(100vw - 32px);text-align:center;border:1px solid var(--border)}
+.login-logo{font-size:48px;margin-bottom:12px}
+.login-title{font-size:24px;font-weight:900;margin-bottom:6px}
+.login-sub{font-size:14px;color:var(--muted);margin-bottom:28px}
+.google-btn{width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-family:Tajawal,sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.google-btn:hover{background:var(--bg)}
+#toastContainer{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9990;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-size:13px;font-weight:600;animation:toastIn .3s,toastOut .3s 2.5s forwards}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-10px)}}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted);padding:32px;text-align:center}
+.es-icon{font-size:64px;opacity:.5}
+.es-title{font-size:18px;font-weight:700}
+#voiceView{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px}
+.voice-status{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:500px;width:100%}
+.voice-users{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.voice-user{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg2);border-radius:8px}
+.voice-user-av{width:36px;height:36px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+.voice-user-name{flex:1;font-size:14px;font-weight:600}
+.voice-indicator{width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.voice-log{margin-top:16px;padding:12px;background:var(--bg);border-radius:8px;font-family:monospace;font-size:11px;max-height:200px;overflow-y:auto;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🌍</div>
+    <div class="login-title">عوالم</div>
+    <div class="login-sub">منصة محادثات صوتية ونصية</div>
+    <button class="google-btn" onclick="signInGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      دخول بـ Google
+    </button>
+  </div>
+</div>
+
+<div id="app">
+  <div id="serverList">
+    <div class="sv-item active" onclick="showHome()">🌍</div>
+    <div class="sv-sep"></div>
+    <div id="svItems"></div>
+    <div class="sv-sep"></div>
+    <div class="sv-item sv-add" onclick="openCreateServer()">+</div>
+    <div class="sv-item sv-add" onclick="openJoinServer()">🔗</div>
+  </div>
+
+  <div id="channelSidebar">
+    <div class="ch-header">
+      <div class="ch-server-name" id="chServerName">الرئيسية</div>
+      <div class="ch-header-icon" onclick="openServerSettings()" id="chSettingsBtn" style="display:none">⚙️</div>
+    </div>
+    <div class="ch-list" id="channelList"></div>
+    <div class="voice-connected" id="voiceConnectedBar">
+      <div class="vc-info">🔊 <span id="vcChannelName"></span></div>
+      <div style="display:flex;gap:6px;padding:4px 8px;justify-content:center">
+        <button class="vc-btn" id="vcMuteBtn" onclick="toggleMute()">🎤</button>
+        <button class="vc-btn" onclick="leaveVoice()">📵</button>
+      </div>
+    </div>
+    <div class="user-panel">
+      <div class="up-av" onclick="openSettings()" id="upAv">?</div>
+      <div class="up-info">
+        <div class="up-name" id="upName">—</div>
+        <div class="up-tag" id="upTag">#0000</div>
+      </div>
+      <button class="up-btn" onclick="openSettings()">⚙️</button>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="main-header">
+      <div class="main-header-icon" id="mhIcon">#</div>
+      <div class="main-header-name" id="mhName">اختر قناة</div>
+    </div>
+
+    <div id="contentArea" style="flex:1;display:flex;overflow:hidden">
+      <div id="homeView" style="flex:1">
+        <div class="empty-state">
+          <div class="es-icon">🌍</div>
+          <div class="es-title">مرحباً في عوالم</div>
+          <button class="modal-btn" style="width:auto;padding:10px 24px" onclick="openCreateServer()">+ إنشاء سيرفر</button>
+        </div>
+      </div>
+
+      <div id="messagesView" style="flex:1;display:none;flex-direction:column">
+        <div id="messagesArea"></div>
+        <div class="chat-input-wrap">
+          <div class="chat-input-box">
+            <div class="chat-input-top">
+              <textarea class="chat-inp" id="mainChatInp" placeholder="رسالة..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}" oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,200)+'px';document.getElementById('sendBtn').classList.toggle('active',this.value.trim())" style="font-size:16px!important"></textarea>
+              <button class="ci-btn send" id="sendBtn" onclick="sendMessage()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="voiceView">
+        <div style="font-size:72px">🎙️</div>
+        <div style="font-size:22px;font-weight:800" id="voiceViewName"></div>
+        <button class="modal-btn" style="width:auto;padding:14px 40px;font-size:16px" id="voiceJoinBtn" onclick="joinVoice()">🔊 انضمام</button>
+        <button class="modal-btn secondary" style="width:auto;padding:14px 40px;font-size:16px;display:none" id="voiceLeaveBtn" onclick="leaveVoice()">📵 مغادرة</button>
+        <div class="voice-status">
+          <div style="font-weight:700;margin-bottom:12px;font-size:15px">👥 المستخدمون في القناة</div>
+          <div class="voice-users" id="voiceUsersList"></div>
+          <div class="voice-log" id="voiceLog">جاهز...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="createServerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('createServerModal')">✕</button>
+    <div class="modal-title">سيرفر جديد</div>
+    <div class="modal-sub">أنشئ مجتمعك الخاص</div>
+    <input class="modal-inp" id="svNameInp" placeholder="اسم السيرفر">
+    <button class="modal-btn" onclick="createServer()">إنشاء</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="joinServerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('joinServerModal')">✕</button>
+    <div class="modal-title">انضم لسيرفر</div>
+    <input class="modal-inp" id="joinCodeInp" placeholder="كود الدعوة">
+    <button class="modal-btn" onclick="joinServer()">انضمام</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="serverSettingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('serverSettingsModal')">✕</button>
+    <div class="modal-title">إعدادات السيرفر</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="modal-btn" onclick="openAddChannel()">➕ قناة</button>
+      <button class="modal-btn secondary" onclick="openInvite()">🔗 دعوة</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="addChannelModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addChannelModal')">✕</button>
+    <div class="modal-title">قناة جديدة</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="modal-btn" id="chTypeText" onclick="selectChType('text')" style="flex:1">💬 نصية</button>
+      <button class="modal-btn secondary" id="chTypeVoice" onclick="selectChType('voice')" style="flex:1">🔊 صوتية</button>
+    </div>
+    <input class="modal-inp" id="chNameInp" placeholder="اسم القناة">
+    <button class="modal-btn" onclick="addChannel()">إضافة</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="inviteModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('inviteModal')">✕</button>
+    <div class="modal-title">دعوة أعضاء</div>
+    <div style="background:var(--bg2);border-radius:10px;padding:12px;margin-bottom:12px;font-family:monospace;font-size:13px;word-break:break-all;color:var(--acc)" id="inviteLink"></div>
+    <button class="modal-btn" onclick="copyInvite()">📋 نسخ الرابط</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <div class="modal-title">إعدادات الحساب</div>
+    <input class="modal-inp" id="displayNameInp" placeholder="اسم العرض">
+    <button class="modal-btn" onclick="saveSettings()">💾 حفظ</button>
+    <button class="modal-btn secondary" onclick="signOut()">🚪 خروج</button>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+
+<script>
+'use strict';
+
+const FB = firebase.initializeApp({
+  apiKey: "AIzaSyCmZPRoEt3IDFxeH-aqvYQIi5dGOmFlS5Y",
+  authDomain: "awalim2-5bdb1.firebaseapp.com",
+  databaseURL: "https://awalim2-5bdb1-default-rtdb.firebaseio.com",
+  projectId: "awalim2-5bdb1"
+});
+
+const auth = FB.auth();
+const db = FB.database();
+
+// Your Agora App ID
+const AGORA_APP_ID = '3a810a3ea5a24451ab56a6b7429c929c';
+
+let currentUser = null;
+let userProfile = {};
+let servers = {};
+let currentServer = null;
+let currentChannel = null;
+let voiceChannel = null;
+let agoraClient = null;
+let localAudioTrack = null;
+let isMuted = false;
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    loadUserProfile().then(() => {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      initApp();
+    });
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+async function signInGoogle() {
+  try {
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  } catch(e) {
+    toast('فشل تسجيل الدخول');
+  }
+}
+
+async function loadUserProfile() {
+  const snap = await db.ref('users/' + currentUser.uid).once('value');
+  userProfile = snap.val() || {};
+  if (!userProfile.displayName) {
+    userProfile.displayName = currentUser.displayName || 'مستخدم';
+    userProfile.tag = String(Math.floor(1000 + Math.random() * 9000));
+    await db.ref('users/' + currentUser.uid).update(userProfile);
+  }
+  updateUserPanel();
+}
+
+function updateUserPanel() {
+  document.getElementById('upAv').textContent = (userProfile.displayName||'?')[0];
+  document.getElementById('upName').textContent = userProfile.displayName || '—';
+  document.getElementById('upTag').textContent = '#' + (userProfile.tag || '0000');
+  const dni = document.getElementById('displayNameInp');
+  if (dni) dni.value = userProfile.displayName || '';
+}
+
+function initApp() {
+  listenServers();
+  if (currentUser) {
+    const presRef = db.ref('presence/' + currentUser.uid);
+    presRef.set({ online: true });
+    presRef.onDisconnect().update({ online: false });
+  }
+  
+  // Initialize Agora
+  agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  log('✅ Agora initialized');
+}
+
+function log(msg) {
+  console.log(msg);
+  const el = document.getElementById('voiceLog');
+  if (el) {
+    el.textContent += msg + '\n';
+    el.scrollTop = el.scrollHeight;
+  }
+}
+
+function listenServers() {
+  if (!currentUser) return;
+  db.ref('users/' + currentUser.uid + '/servers').on('value', snap => {
+    const sids = snap.val() || {};
+    Promise.all(Object.keys(sids).map(sid =>
+      db.ref('servers/' + sid).once('value').then(s => {
+        if (s.val()) servers[sid] = s.val();
+      })
+    )).then(() => {
+      renderServerList();
+      if (!window._loaded) {
+        window._loaded = true;
+        setTimeout(restoreLastServer, 500);
+      }
+    });
+  });
+}
+
+function renderServerList() {
+  const container = document.getElementById('svItems');
+  container.innerHTML = '';
+  Object.entries(servers).forEach(([sid, sv]) => {
+    const div = document.createElement('div');
+    div.className = 'sv-item' + (currentServer === sid ? ' active' : '');
+    div.textContent = sv.emoji || sv.name?.[0] || '?';
+    div.onclick = () => selectServer(sid);
+    container.appendChild(div);
+  });
+}
+
+async function createServer() {
+  const name = document.getElementById('svNameInp').value.trim();
+  if (!name) return;
+  const inviteCode = Math.random().toString(36).substr(2,8).toUpperCase();
+  const sid = 'sv_' + Date.now();
+  const sv = {
+    name, emoji: '🌍', inviteCode,
+    ownerId: currentUser.uid,
+    members: { [currentUser.uid]: { role: 'owner' } },
+    channels: {
+      ['ch_' + Date.now()]: { name: 'عام', type: 'text', position: 0 },
+      ['ch_' + (Date.now()+1)]: { name: 'صوتي', type: 'voice', position: 1 }
+    }
+  };
+  await db.ref('servers/' + sid).set(sv);
+  await db.ref('users/' + currentUser.uid + '/servers/' + sid).set(true);
+  servers[sid] = sv;
+  closeModal('createServerModal');
+  renderServerList();
+  selectServer(sid);
+  toast('✅ تم إنشاء السيرفر');
+}
+
+async function joinServer() {
+  let code = document.getElementById('joinCodeInp').value.trim().toUpperCase();
+  if (!code) return;
+  const snap = await db.ref('servers').orderByChild('inviteCode').equalTo(code).once('value');
+  if (!snap.exists()) { toast('❌ كود خاطئ'); return; }
+  const sid = Object.keys(snap.val())[0];
+  await db.ref('servers/' + sid + '/members/' + currentUser.uid).set({ role: 'member' });
+  await db.ref('users/' + currentUser.uid + '/servers/' + sid).set(true);
+  servers[sid] = snap.val()[sid];
+  closeModal('joinServerModal');
+  renderServerList();
+  selectServer(sid);
+  toast('✅ انضممت للسيرفر');
+}
+
+function selectServer(sid) {
+  currentServer = sid;
+  currentChannel = null;
+  localStorage.setItem('awalem_lastServer', sid);
+  renderServerList();
+  renderChannels(sid);
+  showView('none');
+  document.getElementById('chSettingsBtn').style.display = '';
+}
+
+function showHome() {
+  currentServer = null;
+  currentChannel = null;
+  renderServerList();
+  document.getElementById('chServerName').textContent = 'الرئيسية';
+  document.getElementById('chSettingsBtn').style.display = 'none';
+  document.getElementById('channelList').innerHTML = '';
+  showView('home');
+}
+
+function renderChannels(sid) {
+  const sv = servers[sid];
+  if (!sv) return;
+  document.getElementById('chServerName').textContent = (sv.emoji||'') + ' ' + sv.name;
+  const list = document.getElementById('channelList');
+  list.innerHTML = '';
+  const chs = sv.channels || {};
+  const sorted = Object.entries(chs).sort((a,b) => (a[1].position||0)-(b[1].position||0));
+  const texts = sorted.filter(([,c])=>c.type==='text');
+  const voices = sorted.filter(([,c])=>c.type==='voice');
+  
+  if (texts.length) {
+    const sec = document.createElement('div');
+    sec.className = 'ch-section-title';
+    sec.textContent = 'النصية';
+    list.appendChild(sec);
+    texts.forEach(([cid, ch]) => {
+      const el = document.createElement('div');
+      el.className = 'ch-item' + (currentChannel === cid ? ' active' : '');
+      el.innerHTML = `<span class="ch-item-icon">#</span><span class="ch-item-name">${ch.name}</span>`;
+      el.onclick = () => selectChannel(sid, cid, ch);
+      list.appendChild(el);
+    });
+  }
+  
+  if (voices.length) {
+    const sec = document.createElement('div');
+    sec.className = 'ch-section-title';
+    sec.textContent = 'الصوتية';
+    list.appendChild(sec);
+    voices.forEach(([cid, ch]) => {
+      const el = document.createElement('div');
+      el.className = 'ch-item' + (currentChannel === cid ? ' active' : '');
+      el.innerHTML = `<span class="ch-item-icon">🔊</span><span class="ch-item-name">${ch.name}</span>`;
+      el.onclick = () => selectChannel(sid, cid, ch);
+      list.appendChild(el);
+    });
+  }
+}
+
+function selectChannel(sid, cid, ch) {
+  currentChannel = cid;
+  renderChannels(sid);
+  document.getElementById('mhIcon').textContent = ch.type === 'voice' ? '🔊' : '#';
+  document.getElementById('mhName').textContent = ch.name;
+  
+  if (ch.type === 'voice') {
+    showVoiceChannel(sid, cid, ch);
+  } else {
+    showMessages(sid, cid);
+  }
+}
+
+function showView(name) {
+  document.getElementById('homeView').style.display = name === 'home' ? '' : 'none';
+  document.getElementById('messagesView').style.display = name === 'messages' ? 'flex' : 'none';
+  document.getElementById('voiceView').style.display = name === 'voice' ? 'flex' : 'none';
+}
+
+function showMessages(sid, cid) {
+  showView('messages');
+  const area = document.getElementById('messagesArea');
+  area.innerHTML = '';
+  db.ref('messages/' + sid + '/' + cid).limitToLast(50).on('child_added', snap => {
+    const msg = snap.val();
+    if (!msg) return;
+    const div = document.createElement('div');
+    div.className = 'msg-group';
+    div.innerHTML = `
+      <div class="msg-av">${(msg.name||'?')[0]}</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-name">${escHtml(msg.name||'')}</span>
+          <span class="msg-time">${formatTime(msg.ts)}</span>
+        </div>
+        <div class="msg-content">${escHtml(msg.text||'')}</div>
+      </div>`;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  });
+}
+
+async function sendMessage() {
+  const inp = document.getElementById('mainChatInp');
+  const text = inp.value.trim();
+  if (!text || !currentServer || !currentChannel) return;
+  inp.value = '';
+  inp.style.height = '';
+  document.getElementById('sendBtn').classList.remove('active');
+  
+  await db.ref('messages/' + currentServer + '/' + currentChannel).push({
+    uid: currentUser.uid,
+    name: userProfile.displayName || 'مستخدم',
+    text,
+    ts: Date.now()
+  });
+}
+
+// ════════ VOICE - Agora ════════
+function showVoiceChannel(sid, cid, ch) {
+  showView('voice');
+  voiceChannel = { sid, cid, name: ch.name };
+  document.getElementById('voiceViewName').textContent = ch.name;
+  document.getElementById('voiceJoinBtn').style.display = '';
+  document.getElementById('voiceLeaveBtn').style.display = 'none';
+  document.getElementById('voiceLog').textContent = 'جاهز...\n';
+  
+  db.ref('voice/' + sid + '/' + cid).on('value', snap => {
+    const users = snap.val() || {};
+    const usersList = document.getElementById('voiceUsersList');
+    usersList.innerHTML = '';
+    
+    if (Object.keys(users).length === 0) {
+      usersList.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">لا يوجد أحد في القناة</div>';
+    } else {
+      Object.entries(users).forEach(([uid, u]) => {
+        const div = document.createElement('div');
+        div.className = 'voice-user';
+        div.innerHTML = `
+          <div class="voice-user-av">${(u.name||'?')[0]}</div>
+          <div class="voice-user-name">${escHtml(u.name||'مستخدم')}</div>
+          <div class="voice-indicator"></div>
+        `;
+        usersList.appendChild(div);
+      });
+    }
+  });
+}
+
+async function joinVoice() {
+  if (!voiceChannel || !agoraClient) return;
+  
+  log('🎙️ بدء الانضمام...');
+  toast('⏳ جاري الانضمام...');
+  
+  try {
+    // Create audio track
+    log('📹 إنشاء مسار الصوت...');
+    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
+      encoderConfig: 'music_standard'
+    });
+    log('✅ تم إنشاء مسار الصوت');
+    
+    // Channel name
+    const channelName = `voice_${voiceChannel.sid}_${voiceChannel.cid}`;
+    const uid = parseInt(currentUser.uid.replace(/\D/g, '').substr(0, 9)) || Math.floor(Math.random() * 100000);
+    
+    log(`🔗 الانضمام للقناة: ${channelName}`);
+    
+    // Join channel
+    await agoraClient.join(AGORA_APP_ID, channelName, null, uid);
+    log('✅ تم الانضمام لقناة Agora');
+    
+    // Publish
+    await agoraClient.publish([localAudioTrack]);
+    log('✅ تم نشر الصوت');
+    
+    // Subscribe to others
+    agoraClient.on('user-published', async (user, mediaType) => {
+      log(`📥 مستخدم نشر: ${user.uid}`);
+      await agoraClient.subscribe(user, mediaType);
+      log(`✅ تم الاشتراك في ${user.uid}`);
+      
+      if (mediaType === 'audio') {
+        user.audioTrack.play();
+        log(`🔊 تشغيل الصوت من ${user.uid}`);
+      }
+    });
+    
+    agoraClient.on('user-unpublished', (user) => {
+      log(`📤 مستخدم غادر: ${user.uid}`);
+    });
+    
+    // Update Firebase
+    await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).set({
+      name: userProfile.displayName || 'مستخدم',
+      muted: false,
+      ts: Date.now()
+    });
+    
+    db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).onDisconnect().remove();
+    
+    // UI Update
+    document.getElementById('voiceJoinBtn').style.display = 'none';
+    document.getElementById('voiceLeaveBtn').style.display = '';
+    document.getElementById('voiceConnectedBar').classList.add('show');
+    document.getElementById('vcChannelName').textContent = voiceChannel.name;
+    
+    toast('🔊 انضممت للقناة الصوتية!');
+    log('✅ تم الانضمام بنجاح!');
+    
+  } catch(e) {
+    console.error('Voice error:', e);
+    log(`❌ خطأ: ${e.message}`);
+    toast('❌ فشل: ' + e.message);
+    
+    if (localAudioTrack) {
+      localAudioTrack.close();
+      localAudioTrack = null;
+    }
+  }
+}
+
+async function leaveVoice() {
+  if (!voiceChannel) return;
+  
+  log('📵 مغادرة القناة...');
+  
+  try {
+    if (localAudioTrack) {
+      localAudioTrack.close();
+      localAudioTrack = null;
+    }
+    
+    if (agoraClient) {
+      await agoraClient.leave();
+      log('✅ تم مغادرة Agora');
+    }
+    
+    await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).remove();
+    db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid).off();
+    
+    voiceChannel = null;
+    document.getElementById('voiceConnectedBar').classList.remove('show');
+    document.getElementById('voiceJoinBtn').style.display = '';
+    document.getElementById('voiceLeaveBtn').style.display = 'none';
+    
+    toast('📵 غادرت القناة');
+    log('✅ تمت المغادرة');
+    
+  } catch(e) {
+    console.error('Leave error:', e);
+    log(`❌ خطأ في المغادرة: ${e.message}`);
+  }
+}
+
+async function toggleMute() {
+  if (!localAudioTrack) return;
+  isMuted = !isMuted;
+  await localAudioTrack.setEnabled(!isMuted);
+  
+  const btn = document.getElementById('vcMuteBtn');
+  btn.textContent = isMuted ? '🔇' : '🎤';
+  btn.classList.toggle('muted', isMuted);
+  
+  if (voiceChannel) {
+    await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid + '/muted').set(isMuted);
+  }
+  
+  toast(isMuted ? '🔇 مكتوم' : '🎤 مفعّل');
+  log(isMuted ? '🔇 تم كتم الميكروفون' : '🎤 تم تفعيل الميكروفون');
+}
+
+// ════════ CHANNELS ════════
+let selectedChType = 'text';
+function selectChType(type) {
+  selectedChType = type;
+  document.getElementById('chTypeText').className = type==='text' ? 'modal-btn' : 'modal-btn secondary';
+  document.getElementById('chTypeVoice').className = type==='voice' ? 'modal-btn' : 'modal-btn secondary';
+}
+
+async function addChannel() {
+  const name = document.getElementById('chNameInp').value.trim();
+  if (!name) return;
+  const cid = 'ch_' + Date.now();
+  await db.ref('servers/' + currentServer + '/channels/' + cid).set({ 
+    name, 
+    type: selectedChType, 
+    position: 99 
+  });
+  if (!servers[currentServer].channels) servers[currentServer].channels = {};
+  servers[currentServer].channels[cid] = { name, type: selectedChType, position: 99 };
+  renderChannels(currentServer);
+  closeModal('addChannelModal');
+  toast('✅ تمت إضافة القناة');
+}
+
+// ════════ SETTINGS ════════
+async function saveSettings() {
+  const name = document.getElementById('displayNameInp').value.trim();
+  userProfile.displayName = name;
+  await db.ref('users/' + currentUser.uid).update({ displayName: name });
+  updateUserPanel();
+  closeModal('settingsModal');
+  toast('✅ تم الحفظ');
+}
+
+async function signOut() {
+  if (localAudioTrack) localAudioTrack.close();
+  if (agoraClient) await agoraClient.leave();
+  await auth.signOut();
+}
+
+function openServerSettings() {
+  openModal('serverSettingsModal');
+}
+
+function openInvite() {
+  const sv = servers[currentServer];
+  document.getElementById('inviteLink').textContent = 
+    `${location.origin}${location.pathname}?join=${sv.inviteCode}`;
+  closeModal('serverSettingsModal');
+  openModal('inviteModal');
+}
+
+function copyInvite() {
+  const link = document.getElementById('inviteLink').textContent;
+  navigator.clipboard?.writeText(link).then(() => toast('📋 تم النسخ'));
+}
+
+// ════════ MODALS ════════
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function openCreateServer() { openModal('createServerModal'); }
+function openJoinServer() { openModal('joinServerModal'); }
+function openAddChannel() { closeModal('serverSettingsModal'); openModal('addChannelModal'); }
+function openSettings() { updateUserPanel(); openModal('settingsModal'); }
+
+// ════════ UTILS ════════
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+function restoreLastServer() {
+  const lastSid = localStorage.getItem('awalem_lastServer');
+  if (lastSid && servers[lastSid]) selectServer(lastSid);
+  else if (Object.keys(servers)[0]) selectServer(Object.keys(servers)[0]);
+}
+</script>
+</body>
+</html>
