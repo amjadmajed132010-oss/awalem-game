@@ -1,0 +1,2038 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Kahoot Clone - لعبة تفاعلية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+  :root {
+    --kahoot-purple: #46178f;
+    --kahoot-dark: #25076b;
+    --kahoot-green: #26890c;
+    --kahoot-red: #ff3355;
+    --kahoot-blue: #45a3e5;
+    --kahoot-yellow: #eb670f;
+    --kahoot-cyan: #00b3d4;
+    --kahoot-pink: #e21b3c;
+    --kahoot-orange: #ff8c00;
+    --bg-dark: #1a1a2e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg-dark);
+    color: white;
+    overflow-x: hidden;
+    min-height: 100vh;
+    touch-action: manipulation;
+  }
+  .screen {
+    display: none;
+    min-height: 100vh;
+    width: 100%;
+    animation: fadeIn 0.4s ease;
+  }
+  .screen.active { display: flex; flex-direction: column; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); } 100% { transform: translateY(100vh) rotate(720deg); } }
+  @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  @keyframes ripple { 0% { transform: scale(0); opacity: 0.5; } 100% { transform: scale(4); opacity: 0; } }
+
+  .home-screen {
+    background: linear-gradient(135deg, var(--kahoot-purple) 0%, var(--kahoot-dark) 100%);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-screen::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%;
+    top: -100px; left: -100px;
+    animation: float 20s infinite;
+  }
+  .home-screen::after {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%;
+    bottom: -50px; right: -50px;
+    animation: float 15s infinite reverse;
+  }
+  @keyframes float { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-30px); } }
+  .logo {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    text-shadow: 4px 4px 0px rgba(0,0,0,0.3);
+    animation: bounce 2s infinite;
+    z-index: 2;
+  }
+  .logo span { color: #ffd700; }
+  .subtitle { font-size: 1.2rem; opacity: 0.9; margin-bottom: 40px; z-index: 2; }
+  .home-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 90%;
+    max-width: 350px;
+    z-index: 2;
+  }
+  .btn {
+    border: none;
+    padding: 18px 30px;
+    border-radius: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+  .btn-primary { background: var(--kahoot-green); color: white; }
+  .btn-primary:hover { background: #1f700a; }
+  .btn-secondary { background: var(--kahoot-blue); color: white; }
+  .btn-secondary:hover { background: #358bc4; }
+  .btn-warning { background: var(--kahoot-yellow); color: white; }
+  .btn-warning:hover { background: #d45a0c; }
+  .btn-danger { background: var(--kahoot-red); color: white; }
+  .btn-danger:hover { background: #d92a47; }
+  .btn-dark { background: #2d2d44; color: white; border: 2px solid rgba(255,255,255,0.1); }
+  .btn-dark:hover { background: #3d3d5c; }
+  .btn-sm { padding: 10px 20px; font-size: 0.95rem; border-radius: 10px; }
+  .btn-full { width: 100%; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  .create-screen, .import-screen { background: #f0f2f5; color: #333; }
+  .create-header, .import-header {
+    background: var(--kahoot-purple);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .create-header h2, .import-header h2 { font-size: 1.5rem; }
+  .create-body, .import-body { padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
+  .quiz-title-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.3rem;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+  }
+  .quiz-title-input:focus { outline: none; border-color: var(--kahoot-purple); }
+  .question-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    animation: slideIn 0.3s ease;
+  }
+  .question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  .question-header h3 { color: var(--kahoot-purple); }
+  .question-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-family: 'Tajawal', sans-serif;
+  }
+  .question-input:focus { outline: none; border-color: var(--kahoot-purple); }
+  .answers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .answer-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .answer-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Tajawal', sans-serif;
+  }
+  .answer-input.red { border-color: var(--kahoot-red); background: #fff0f3; }
+  .answer-input.blue { border-color: var(--kahoot-blue); background: #f0f8ff; }
+  .answer-input.green { border-color: var(--kahoot-green); background: #f0fff0; }
+  .answer-input.yellow { border-color: var(--kahoot-yellow); background: #fff8f0; }
+  .correct-check {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .correct-check.active { background: var(--kahoot-green); border-color: var(--kahoot-green); color: white; }
+  .correct-check i { font-size: 12px; opacity: 0; }
+  .correct-check.active i { opacity: 1; }
+  .time-select {
+    display: flex;
+    gap: 8px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+  }
+  .time-option {
+    padding: 8px 16px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .time-option.active { background: var(--kahoot-purple); color: white; border-color: var(--kahoot-purple); }
+  .points-select {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .points-option {
+    padding: 6px 14px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+  }
+  .points-option.active { background: var(--kahoot-yellow); color: white; border-color: var(--kahoot-yellow); }
+  .add-question-btn {
+    width: 100%;
+    padding: 15px;
+    border: 3px dashed #ccc;
+    border-radius: 16px;
+    background: transparent;
+    color: #666;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .add-question-btn:hover { border-color: var(--kahoot-purple); color: var(--kahoot-purple); background: rgba(70,23,143,0.05); }
+  .save-quiz-bar {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  /* IMPORT SCREEN */
+  .import-option {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .import-option:hover { border-color: var(--kahoot-purple); }
+  .import-option h3 { color: var(--kahoot-purple); margin-bottom: 10px; }
+  .import-option p { color: #666; margin-bottom: 15px; font-size: 0.95rem; }
+  .import-select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-family: 'Tajawal', sans-serif;
+    background: white;
+  }
+  .import-select:focus { outline: none; border-color: var(--kahoot-purple); }
+  .import-number {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-family: 'Tajawal', sans-serif;
+  }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 4px solid rgba(70,23,143,0.2);
+    border-top-color: var(--kahoot-purple);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+  .imported-preview {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .preview-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 0.9rem;
+  }
+  .preview-item:last-child { border-bottom: none; }
+  .preview-q { font-weight: 700; color: var(--kahoot-purple); margin-bottom: 5px; }
+  .preview-a { color: #666; }
+  .preview-correct { color: var(--kahoot-green); font-weight: 700; }
+
+  /* HOST */
+  .host-screen { background: var(--kahoot-purple); }
+  .host-lobby {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+  }
+  .pin-display {
+    background: white;
+    color: var(--kahoot-dark);
+    padding: 20px 40px;
+    border-radius: 20px;
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: 8px;
+    margin: 20px 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: pulse 2s infinite;
+  }
+  .pin-label { font-size: 1.2rem; opacity: 0.8; margin-top: 10px; }
+  .players-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 30px;
+    max-width: 800px;
+  }
+  .player-chip {
+    background: rgba(255,255,255,0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    animation: popIn 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+  .start-game-btn {
+    margin-top: 30px;
+    padding: 20px 60px;
+    font-size: 1.5rem;
+  }
+  .host-question {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .host-question.active { display: flex; }
+  .question-top-bar {
+    background: white;
+    color: #333;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+  }
+  .timer-circle {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--kahoot-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white;
+    transition: all 0.3s;
+  }
+  .timer-circle.warning { background: var(--kahoot-yellow); }
+  .timer-circle.danger { background: var(--kahoot-red); animation: shake 0.5s infinite; }
+  .question-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    text-align: center;
+  }
+  .question-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    line-height: 1.4;
+  }
+  .answers-show {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+    max-width: 900px;
+  }
+  .answer-show {
+    padding: 25px;
+    border-radius: 16px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .answer-show.red { background: var(--kahoot-red); }
+  .answer-show.blue { background: var(--kahoot-blue); }
+  .answer-show.green { background: var(--kahoot-green); }
+  .answer-show.yellow { background: var(--kahoot-yellow); }
+  .answer-show.correct { box-shadow: 0 0 30px rgba(255,255,255,0.5), 0 6px 0 rgba(0,0,0,0.2); }
+  .answer-show.correct::after {
+    content: '✓';
+    position: absolute;
+    top: 10px; left: 10px;
+    font-size: 2rem;
+    opacity: 0.3;
+  }
+  .answer-icon {
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+  }
+  .answers-count {
+    position: absolute;
+    bottom: 10px; left: 10px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+  .host-leaderboard {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--kahoot-purple);
+    padding: 30px;
+  }
+  .host-leaderboard.active { display: flex; }
+  .leaderboard-title { font-size: 2rem; font-weight: 900; text-align: center; margin-bottom: 30px; }
+  .leaderboard-list { max-width: 600px; margin: 0 auto; width: 100%; }
+  .leaderboard-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255,255,255,0.1);
+    padding: 15px 20px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+  .leaderboard-rank {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.1rem;
+  }
+  .rank-1 { background: gold; color: #333; }
+  .rank-2 { background: silver; color: #333; }
+  .rank-3 { background: #cd7f32; color: white; }
+  .rank-other { background: rgba(255,255,255,0.2); color: white; }
+  .leaderboard-name { flex: 1; font-weight: 700; font-size: 1.1rem; }
+  .leaderboard-score { font-weight: 900; font-size: 1.2rem; }
+  .leaderboard-change {
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+  }
+  .change-up { background: var(--kahoot-green); }
+  .change-same { background: rgba(255,255,255,0.2); }
+
+  /* PODIUM */
+  .podium-screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--kahoot-purple) 0%, var(--kahoot-dark) 100%);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .podium-screen.active { display: flex; }
+  .confetti {
+    position: absolute;
+    width: 10px; height: 10px;
+    top: -10px;
+    animation: confetti-fall 3s linear infinite;
+  }
+  .podium-title { font-size: 3rem; font-weight: 900; margin-bottom: 40px; text-align: center; }
+  .podium-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .podium-place {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: popIn 0.5s ease backwards;
+  }
+  .podium-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+    border: 4px solid;
+  }
+  .place-2 .podium-avatar { background: silver; border-color: #aaa; color: #333; width: 70px; height: 70px; font-size: 1.5rem; }
+  .place-1 .podium-avatar { background: gold; border-color: #daa520; color: #333; width: 100px; height: 100px; font-size: 2.5rem; box-shadow: 0 0 40px rgba(255,215,0,0.5); }
+  .place-3 .podium-avatar { background: #cd7f32; border-color: #a0522d; color: white; width: 60px; height: 60px; font-size: 1.3rem; }
+  .podium-name { font-weight: 700; margin-bottom: 5px; text-align: center; }
+  .podium-score { font-size: 0.9rem; opacity: 0.8; }
+  .podium-block {
+    width: 120px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 2rem;
+    margin-top: 15px;
+  }
+  .place-2 .podium-block { height: 120px; background: #c0c0c0; color: #333; }
+  .place-1 .podium-block { height: 180px; background: #ffd700; color: #333; }
+  .place-3 .podium-block { height: 80px; background: #cd7f32; color: white; }
+  .place-1 { animation-delay: 0.2s; }
+  .place-2 { animation-delay: 0.1s; }
+  .place-3 { animation-delay: 0.3s; }
+
+  /* PLAYER */
+  .player-join-screen {
+    background: var(--kahoot-purple);
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .join-box {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    color: #333;
+  }
+  .join-box h2 { color: var(--kahoot-purple); margin-bottom: 10px; font-size: 1.8rem; }
+  .join-box p { color: #666; margin-bottom: 25px; }
+  .pin-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.5rem;
+    text-align: center;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    letter-spacing: 4px;
+  }
+  .pin-input:focus { outline: none; border-color: var(--kahoot-purple); }
+  .name-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+    border: 3px solid #ddd;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+  }
+  .name-input:focus { outline: none; border-color: var(--kahoot-purple); }
+
+  .player-game-screen {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .player-game-screen.active { display: flex; }
+  .player-waiting {
+    background: var(--kahoot-purple);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .player-waiting.active { display: flex; }
+  .player-waiting h2 { font-size: 2rem; margin-bottom: 20px; }
+  .waiting-anim {
+    width: 60px; height: 60px;
+    border: 5px solid rgba(255,255,255,0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .player-question {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .player-question.active { display: flex; }
+  .player-q-top {
+    background: white;
+    color: #333;
+    padding: 15px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .player-q-text {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    background: var(--kahoot-purple);
+  }
+  .player-answers {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 50vh;
+    min-height: 300px;
+  }
+  .player-answer-btn {
+    border: none;
+    font-size: 1.3rem;
+    font-weight: 700;
+    font-family: 'Tajawal', sans-serif;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.1s;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    touch-action: manipulation;
+    pointer-events: auto;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .player-answer-btn:active { transform: scale(0.92); }
+  .player-answer-btn.red { background: var(--kahoot-red); }
+  .player-answer-btn.blue { background: var(--kahoot-blue); }
+  .player-answer-btn.green { background: var(--kahoot-green); }
+  .player-answer-btn.yellow { background: var(--kahoot-yellow); }
+  .player-answer-btn.selected { box-shadow: inset 0 0 50px rgba(255,255,255,0.5); }
+  .player-answer-btn.correct-anim { animation: correctPulse 0.5s ease; }
+  .player-answer-btn.wrong-anim { animation: shake 0.5s ease; opacity: 0.5; }
+  @keyframes correctPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+  .answer-shape { font-size: 2rem; pointer-events: none; }
+  .player-answer-btn span:not(.answer-shape) { pointer-events: none; }
+  .player-result {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+  }
+  .player-result.active { display: flex; }
+  .result-icon { font-size: 5rem; margin-bottom: 20px; }
+  .result-text { font-size: 2rem; font-weight: 900; margin-bottom: 10px; }
+  .result-points { font-size: 1.5rem; }
+  .result-correct { background: var(--kahoot-green); }
+  .result-wrong { background: var(--kahoot-red); }
+  .result-timeout { background: var(--kahoot-yellow); }
+
+  /* QUIZ LIST */
+  .quiz-list-screen { background: #f0f2f5; color: #333; }
+  .quiz-list-header {
+    background: var(--kahoot-purple);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .quiz-list-body { padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
+  .quiz-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .quiz-card:hover { border-color: var(--kahoot-purple); transform: translateY(-2px); }
+  .quiz-card-info h3 { color: var(--kahoot-purple); margin-bottom: 5px; }
+  .quiz-card-info p { color: #666; font-size: 0.9rem; }
+  .quiz-card-actions { display: flex; gap: 8px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+  .empty-state i { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-weight: 700;
+    z-index: 10000;
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--kahoot-green); }
+  .toast.error { background: var(--kahoot-red); }
+
+  /* NETLIFY GUIDE */
+  .guide-screen { background: #f8f9fa; color: #333; }
+  .guide-header {
+    background: linear-gradient(135deg, #00ad9f 0%, #008080 100%);
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+  }
+  .guide-header h2 { font-size: 2rem; margin-bottom: 5px; }
+  .guide-header p { opacity: 0.9; }
+  .guide-body { padding: 20px; max-width: 800px; margin: 0 auto; width: 100%; flex: 1; }
+  .guide-step {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-right: 4px solid #00ad9f;
+  }
+  .guide-step h3 { color: #00ad9f; margin-bottom: 10px; font-size: 1.2rem; }
+  .guide-step p, .guide-step li { color: #555; line-height: 1.8; font-size: 0.95rem; }
+  .guide-step ol, .guide-step ul { padding-right: 20px; }
+  .guide-step li { margin-bottom: 8px; }
+  .code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 12px 15px;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin: 10px 0;
+    direction: ltr;
+    text-align: left;
+    overflow-x: auto;
+  }
+  .highlight { background: #fff3cd; padding: 2px 6px; border-radius: 4px; color: #856404; font-weight: 700; }
+
+  /* RIPPLE */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    width: 20px; height: 20px;
+    margin-top: -10px; margin-left: -10px;
+    animation: ripple 0.6s ease-out;
+    pointer-events: none;
+  }
+
+  /* MUSIC */
+  .music-toggle {
+    position: fixed;
+    top: 20px; left: 20px;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+  }
+  .music-toggle:hover { background: rgba(255,255,255,0.3); }
+
+  @media (max-width: 600px) {
+    .logo { font-size: 2.5rem; }
+    .question-text { font-size: 1.5rem; }
+    .answers-show { grid-template-columns: 1fr; }
+    .pin-display { font-size: 2rem; padding: 15px 25px; }
+    .podium-container { gap: 10px; }
+    .podium-block { width: 80px; }
+    .place-1 .podium-block { height: 140px; }
+    .place-2 .podium-block { height: 100px; }
+    .place-3 .podium-block { height: 70px; }
+    .player-q-text { font-size: 1.2rem; }
+    .player-answer-btn { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+<button class="music-toggle" id="musicToggle" onclick="toggleMusic()" style="display:none;">
+  <i class="fas fa-volume-mute" id="musicIcon"></i>
+</button>
+
+<!-- ==================== HOME ==================== -->
+<div id="homeScreen" class="screen home-screen active">
+  <div class="logo">KAHOOT<span>!</span></div>
+  <div class="subtitle">لعبة أسئلة تفاعلية جماعية</div>
+  <div class="home-buttons">
+    <button class="btn btn-primary" onclick="showScreen('hostSetupScreen')">
+      <i class="fas fa-play"></i> ابدأ لعبة (مضيف)
+    </button>
+    <button class="btn btn-secondary" onclick="showScreen('playerJoinScreen')">
+      <i class="fas fa-mobile-alt"></i> انضم كلاعب
+    </button>
+    <button class="btn btn-warning" onclick="showQuizList()">
+      <i class="fas fa-list"></i> اختر اختبار
+    </button>
+    <button class="btn btn-dark" onclick="showCreateScreen()">
+      <i class="fas fa-plus"></i> أنشئ اختبار جديد
+    </button>
+    <button class="btn btn-secondary" style="background:#6c5ce7;" onclick="showImportScreen()">
+      <i class="fas fa-cloud-download-alt"></i> استورد أسئلة من الإنترنت
+    </button>
+    <button class="btn btn-dark" style="background:#00ad9f; border:none;" onclick="showScreen('guideScreen')">
+      <i class="fas fa-rocket"></i> كيف أرفع اللعبة على الإنترنت؟
+    </button>
+  </div>
+</div>
+
+<!-- ==================== IMPORT SCREEN ==================== -->
+<div id="importScreen" class="screen import-screen">
+  <div class="import-header">
+    <h2><i class="fas fa-cloud-download-alt"></i> استيراد أسئلة من الإنترنت</h2>
+    <button class="btn btn-sm btn-dark" onclick="goHome()">
+      <i class="fas fa-arrow-right"></i> رجوع
+    </button>
+  </div>
+  <div class="import-body">
+    <div class="import-option">
+      <h3><i class="fas fa-globe"></i> Open Trivia Database</h3>
+      <p>قاعدة بيانات مجانية تحتوي على آلاف الأسئلة بالإنجليزية في مختلف المجالات. الأسئلة تُجلب مباشرة وتُحفظ في جهازك.</p>
+      <label style="font-weight:700; display:block; margin-bottom:5px;">التصنيف:</label>
+      <select class="import-select" id="apiCategory">
+        <option value="">جميع التصنيفات</option>
+        <option value="9">علوم عامة</option>
+        <option value="17">علوم الطبيعة</option>
+        <option value="18">علوم الحاسب</option>
+        <option value="19">رياضيات</option>
+        <option value="21">رياضة</option>
+        <option value="22">جغرافيا</option>
+        <option value="23">تاريخ</option>
+        <option value="10">كتب</option>
+        <option value="11">أفلام</option>
+        <option value="12">موسيقى</option>
+        <option value="14">تلفزيون</option>
+        <option value="15">ألعاب فيديو</option>
+        <option value="20">أساطير</option>
+        <option value="24">سياسة</option>
+        <option value="25">فن</option>
+        <option value="26">مشاهير</option>
+        <option value="27">حيوانات</option>
+        <option value="28">سيارات</option>
+      </select>
+      <label style="font-weight:700; display:block; margin-bottom:5px; margin-top:10px;">الصعوبة:</label>
+      <select class="import-select" id="apiDifficulty">
+        <option value="">عشوائي</option>
+        <option value="easy">سهل</option>
+        <option value="medium">متوسط</option>
+        <option value="hard">صعب</option>
+      </select>
+      <label style="font-weight:700; display:block; margin-bottom:5px; margin-top:10px;">عدد الأسئلة (1-50):</label>
+      <input type="number" class="import-number" id="apiAmount" value="10" min="1" max="50">
+      <button class="btn btn-primary btn-full" style="margin-top:15px;" id="fetchBtn" onclick="fetchFromAPI()">
+        <i class="fas fa-download"></i> جلب الأسئلة
+      </button>
+      <div id="fetchLoading" style="display:none;">
+        <div class="loading-spinner"></div>
+        <p style="text-align:center; color:#666;">جاري جلب الأسئلة...</p>
+      </div>
+      <div id="fetchPreview" style="display:none;">
+        <div class="imported-preview" id="previewList"></div>
+        <input type="text" class="quiz-title-input" id="importedTitle" placeholder="عنوان الاختبار..." style="margin-top:15px;">
+        <div style="display:flex; gap:10px; margin-top:15px;">
+          <button class="btn btn-primary btn-full" onclick="saveImportedQuiz()">
+            <i class="fas fa-save"></i> حفظ الاختبار
+          </button>
+          <button class="btn btn-dark" onclick="cancelImport()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="import-option">
+      <h3><i class="fas fa-paste"></i> لصق JSON يدوياً</h3>
+      <p>إذا كان لديك أسئلة بتنسيق JSON، الصقها هنا مباشرة:</p>
+      <textarea class="question-input" id="jsonInput" rows="6" placeholder='{"title":"اختباري","questions":[{"text":"سؤال؟","answers":["أ","ب","ج","د"],"correct":0,"time":20}]}'></textarea>
+      <button class="btn btn-warning btn-full" style="margin-top:10px;" onclick="importFromJSON()">
+        <i class="fas fa-file-import"></i> استيراد من JSON
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== QUIZ LIST ==================== -->
+<div id="quizListScreen" class="screen quiz-list-screen">
+  <div class="quiz-list-header">
+    <h2><i class="fas fa-list"></i> الاختبارات المتاحة</h2>
+    <button class="btn btn-sm btn-dark" onclick="goHome()">
+      <i class="fas fa-arrow-right"></i> رجوع
+    </button>
+  </div>
+  <div class="quiz-list-body" id="quizListBody"></div>
+</div>
+
+<!-- ==================== HOST SETUP ==================== -->
+<div id="hostSetupScreen" class="screen" style="background:var(--kahoot-purple); justify-content:center; align-items:center; padding:20px;">
+  <div class="join-box">
+    <h2><i class="fas fa-cog"></i> إعدادات اللعبة</h2>
+    <p>اختر الاختبار الذي تريد لعبه</p>
+    <div id="hostQuizSelect" style="margin-bottom:20px; max-height:300px; overflow-y:auto;"></div>
+    <button class="btn btn-dark btn-full btn-sm" onclick="goHome()">رجوع</button>
+  </div>
+</div>
+
+<!-- ==================== HOST LOBBY ==================== -->
+<div id="hostLobbyScreen" class="screen host-screen">
+  <div class="host-lobby" id="hostLobbyView">
+    <h2 style="font-size:2rem; margin-bottom:10px;">انضم إلى اللعبة عبر الرمز:</h2>
+    <div class="pin-display" id="gamePin">----</div>
+    <div class="pin-label">انتظر اللاعبين ثم اضغط "ابدأ"</div>
+    <div class="players-grid" id="lobbyPlayers"></div>
+    <button class="btn btn-primary start-game-btn" id="startGameBtn" onclick="startGame()" disabled>
+      <i class="fas fa-play"></i> ابدأ اللعبة
+    </button>
+    <button class="btn btn-danger btn-sm" style="margin-top:15px;" onclick="endHostGame()">
+      <i class="fas fa-times"></i> إلغاء
+    </button>
+  </div>
+  <div class="host-question" id="hostQuestionView">
+    <div class="question-top-bar">
+      <span id="hostQNumber">السؤال 1</span>
+      <div class="timer-circle" id="hostTimer">20</div>
+      <span id="hostQCount">إجابات: 0</span>
+    </div>
+    <div class="question-content">
+      <div class="question-text" id="hostQuestionText">السؤال هنا</div>
+      <div class="answers-show" id="hostAnswersShow">
+        <div class="answer-show red"><div class="answer-icon">▲</div><span id="ansText0">---</span><span class="answers-count" id="ansCount0">0</span></div>
+        <div class="answer-show blue"><div class="answer-icon">◆</div><span id="ansText1">---</span><span class="answers-count" id="ansCount1">0</span></div>
+        <div class="answer-show green"><div class="answer-icon">●</div><span id="ansText2">---</span><span class="answers-count" id="ansCount2">0</span></div>
+        <div class="answer-show yellow"><div class="answer-icon">■</div><span id="ansText3">---</span><span class="answers-count" id="ansCount3">0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="host-leaderboard" id="hostLeaderboardView">
+    <div class="leaderboard-title"><i class="fas fa-trophy"></i> المتصدرون</div>
+    <div class="leaderboard-list" id="leaderboardList"></div>
+    <div style="text-align:center; margin-top:30px;">
+      <button class="btn btn-primary btn-lg" id="nextQuestionBtn" onclick="nextQuestion()">السؤال التالي <i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-warning btn-lg" id="endGameBtn" onclick="showPodium()" style="display:none;">النتائج النهائية <i class="fas fa-trophy"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PODIUM ==================== -->
+<div id="podiumScreen" class="screen podium-screen">
+  <div class="podium-title">🎉 النتائج النهائية 🎉</div>
+  <div class="podium-container" id="podiumContainer"></div>
+  <button class="btn btn-primary" style="padding:15px 40px; font-size:1.2rem;" onclick="goHome()">
+    <i class="fas fa-home"></i> العودة للرئيسية
+  </button>
+</div>
+
+<!-- ==================== PLAYER JOIN ==================== -->
+<div id="playerJoinScreen" class="screen player-join-screen">
+  <div class="join-box">
+    <h2><i class="fas fa-gamepad"></i> انضم للعبة</h2>
+    <p>أدخل رمز اللعبة والاسم</p>
+    <input type="text" class="pin-input" id="joinPin" placeholder="رمز اللعبة" maxlength="6" inputmode="numeric">
+    <input type="text" class="name-input" id="joinName" placeholder="اسمك" maxlength="15">
+    <button class="btn btn-primary btn-full" onclick="joinGame()">
+      <i class="fas fa-sign-in-alt"></i> انضمام
+    </button>
+    <button class="btn btn-dark btn-full btn-sm" style="margin-top:10px;" onclick="goHome()">رجوع</button>
+  </div>
+</div>
+
+<!-- ==================== PLAYER GAME ==================== -->
+<div id="playerGameScreen" class="screen player-game-screen">
+  <div class="player-waiting active" id="playerWaitingView">
+    <h2>أنت داخل اللعبة!</h2>
+    <div class="waiting-anim"></div>
+    <p style="margin-top:20px; opacity:0.8;">انتظر بدء المضيف...</p>
+    <div style="margin-top:10px; font-weight:700;" id="playerWaitName"></div>
+  </div>
+  <div class="player-question" id="playerQuestionView">
+    <div class="player-q-top"><span id="playerQTopText">السؤال 1</span></div>
+    <div class="player-q-text" id="playerQuestionText">انتظر السؤال...</div>
+    <div class="player-answers" id="playerAnswers">
+      <button class="player-answer-btn red" id="pBtn0" onclick="submitAnswer(0)"><span class="answer-shape">▲</span><span id="pAns0">---</span></button>
+      <button class="player-answer-btn blue" id="pBtn1" onclick="submitAnswer(1)"><span class="answer-shape">◆</span><span id="pAns1">---</span></button>
+      <button class="player-answer-btn green" id="pBtn2" onclick="submitAnswer(2)"><span class="answer-shape">●</span><span id="pAns2">---</span></button>
+      <button class="player-answer-btn yellow" id="pBtn3" onclick="submitAnswer(3)"><span class="answer-shape">■</span><span id="pAns3">---</span></button>
+    </div>
+  </div>
+  <div class="player-result result-correct" id="playerCorrectView">
+    <div class="result-icon"><i class="fas fa-check-circle"></i></div>
+    <div class="result-text">إجابة صحيحة!</div>
+    <div class="result-points" id="correctPoints">+1000 نقطة</div>
+  </div>
+  <div class="player-result result-wrong" id="playerWrongView">
+    <div class="result-icon"><i class="fas fa-times-circle"></i></div>
+    <div class="result-text">إجابة خاطئة</div>
+    <div class="result-points">0 نقطة</div>
+  </div>
+  <div class="player-result result-timeout" id="playerTimeoutView">
+    <div class="result-icon"><i class="fas fa-clock"></i></div>
+    <div class="result-text">انتهى الوقت!</div>
+    <div class="result-points">0 نقطة</div>
+  </div>
+</div>
+
+<!-- ==================== CREATE ==================== -->
+<div id="createScreen" class="screen create-screen">
+  <div class="create-header">
+    <h2><i class="fas fa-pen"></i> منشئ الاختبارات</h2>
+    <button class="btn btn-sm btn-dark" onclick="goHome()"><i class="fas fa-arrow-right"></i> رجوع</button>
+  </div>
+  <div class="create-body">
+    <input type="text" class="quiz-title-input" id="quizTitle" placeholder="عنوان الاختبار...">
+    <div id="questionsContainer"></div>
+    <button class="add-question-btn" onclick="addQuestion()"><i class="fas fa-plus"></i> إضافة سؤال</button>
+  </div>
+  <div class="save-quiz-bar">
+    <button class="btn btn-primary" onclick="saveQuiz()"><i class="fas fa-save"></i> حفظ الاختبار</button>
+    <button class="btn btn-dark" onclick="goHome()">إلغاء</button>
+  </div>
+</div>
+
+<!-- ==================== NETLIFY GUIDE ==================== -->
+<div id="guideScreen" class="screen guide-screen">
+  <div class="guide-header">
+    <h2><i class="fas fa-rocket"></i> رفع اللعبة على الإنترنت</h2>
+    <p>دليل خطوة بخطوة لنشر لعبتك مجاناً على Netlify</p>
+  </div>
+  <div class="guide-body">
+    <div class="guide-step">
+      <h3><span class="highlight">1</span> أنشئ حساباً على Netlify</h3>
+      <p>ادخل إلى <a href="https://app.netlify.com/signup" target="_blank" style="color:#00ad9f; font-weight:700;">app.netlify.com/signup</a> وسجل باستخدام:</p>
+      <ul>
+        <li>بريدك الإلكتروني، أو</li>
+        <li>حساب GitHub / GitLab / Bitbucket</li>
+      </ul>
+      <p>التسجيل <strong>مجاني 100%</strong> ولا يحتاج بطاقة بنكية.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="highlight">2</span> جهز ملف اللعبة</h3>
+      <p>احفظ ملف اللعبة باسم <code class="highlight">index.html</code> (هذا الاسم مهم جداً — هو الصفحة الرئيسية).</p>
+      <p>تأكد أن الملف يعمل محلياً: افتحه بالمتصفح وجرّب اللعبة كاملة.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="highlight">3</span> ارفع الملف (أسهل طريقة)</h3>
+      <ol>
+        <li>سجّل الدخول إلى <a href="https://app.netlify.com" target="_blank" style="color:#00ad9f; font-weight:700;">app.netlify.com</a></li>
+        <li>اضغط <strong>"Add new site"</strong> ← <strong>"Deploy manually"</strong></li>
+        <li>اسحب ملف <code class="highlight">index.html</code> وأفلته في المربع</li>
+        <li>انتظر 10 ثوانٍ... تم النشر! 🎉</li>
+      </ol>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="highlight">4</span> احصل على الرابط</h3>
+      <p>Netlify يعطيك رابطاً مجانياً مثل:</p>
+      <div class="code-block">https://kahoot-game-abc123.netlify.app</div>
+      <p>يمكنك تغيير الاسم من إعدادات الموقع → <strong>Domain settings</strong>.</p>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="highlight">5</span> شارك اللعبة!</h3>
+      <p>أرسل الرابط لأصدقائك. عندما يفتحونه:</p>
+      <ul>
+        <li>أحدهم يضغط <strong>"ابدأ لعبة"</strong> (يصبح مضيفاً)</li>
+        <li>الباقي يضغطون <strong>"انضم كلاعب"</strong> ويدخلون الرمز</li>
+        <li><strong>ملاحظة:</strong> بما أن اللعبة تعمل في المتصفح فقط (بدون سيرفر حقيقي)، اللاعبون يجب أن يكونوا في نفس الجهاز/شاشة واحدة للتجربة الكاملة.</li>
+      </ul>
+    </div>
+
+    <div class="guide-step">
+      <h3><span class="highlight">💡</span> نصيحة احترافية</h3>
+      <p>لتجربة Kahoot حقيقية متعددة الأجهزة، تحتاج:</p>
+      <ul>
+        <li>إضافة <strong>Firebase Realtime Database</strong> (مجاني) للمزامنة بين الأجهزة</li>
+        <li>أو استخدام <strong>Socket.io</strong> مع Node.js سيرفر</li>
+      </ul>
+      <p>هل تريد أن أضيف Firebase للعبة لتصبح متعددة الأجهزة حقاً؟</p>
+    </div>
+
+    <div style="text-align:center; margin-top:30px; margin-bottom:40px;">
+      <button class="btn btn-primary" style="padding:15px 40px; font-size:1.2rem;" onclick="goHome()">
+        <i class="fas fa-home"></i> العودة للرئيسية
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA & STATE ====================
+let quizzes = [];
+try {
+  const stored = localStorage.getItem('kahoot_quizzes');
+  if (stored) quizzes = JSON.parse(stored);
+} catch(e) { quizzes = []; }
+
+let currentQuiz = null;
+let currentQuestionIndex = 0;
+let gamePin = '';
+let players = [];
+let timerInterval = null;
+let timeLeft = 20;
+let answersCount = [0,0,0,0];
+let playerAnswers = {};
+let currentPlayer = null;
+let hasAnswered = false;
+let musicEnabled = false;
+let synth = null;
+let gameState = 'lobby';
+let importedQuestions = [];
+
+const DEMO_QUIZ = {
+  id: 'demo',
+  title: 'اختبار عام',
+  questions: [
+    { text: 'ما هي عاصمة المملكة العربية السعودية؟', answers: ['جدة', 'الرياض', 'مكة', 'الدمام'], correct: 1, time: 20, points: 'standard' },
+    { text: 'كم عدد أيام الأسبوع؟', answers: ['5', '6', '7', '8'], correct: 2, time: 15, points: 'standard' },
+    { text: 'ما هو أطول نهر في العالم؟', answers: ['النيل', 'الأمازون', 'الفرات', 'اليانغتسي'], correct: 1, time: 20, points: 'standard' },
+    { text: 'في أي عام تأسست شركة آبل؟', answers: ['1974', '1976', '1980', '1984'], correct: 1, time: 20, points: 'standard' },
+    { text: 'ما هو الحيوان الأسرع في العالم؟', answers: ['الفهد', 'الظبي', 'الأسد', 'النعامة'], correct: 0, time: 15, points: 'standard' }
+  ]
+};
+
+if (!quizzes.find(q => q && q.id === 'demo')) {
+  quizzes.unshift(DEMO_QUIZ);
+  saveQuizzesToStorage();
+}
+
+function saveQuizzesToStorage() {
+  try { localStorage.setItem('kahoot_quizzes', JSON.stringify(quizzes)); } catch(e) {}
+}
+
+// ==================== AUDIO ====================
+function initAudio() {
+  if (!synth) {
+    try {
+      synth = new Tone.PolySynth(Tone.Synth).toDestination();
+      synth.volume.value = -10;
+    } catch(e) {}
+  }
+}
+function toggleMusic() {
+  musicEnabled = !musicEnabled;
+  const icon = document.getElementById('musicIcon');
+  icon.className = musicEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+  if (musicEnabled) { Tone.start(); initAudio(); }
+}
+function playSound(type) {
+  if (!musicEnabled || !synth) return;
+  try {
+    switch(type) {
+      case 'join': synth.triggerAttackRelease(["C4","E4"],"8n"); break;
+      case 'start': synth.triggerAttackRelease(["C4","E4","G4","C5"],"4n"); break;
+      case 'correct': synth.triggerAttackRelease(["C5","E5","G5"],"8n"); break;
+      case 'wrong': synth.triggerAttackRelease(["C3","B2"],"4n"); break;
+      case 'tick': synth.triggerAttackRelease("C5","32n",undefined,0.3); break;
+      case 'timeout': synth.triggerAttackRelease(["A3","E3"],"4n"); break;
+      case 'win': synth.triggerAttackRelease(["C4","E4","G4","C5","E5","G5"],"2n"); break;
+    }
+  } catch(e) {}
+}
+
+// ==================== NAVIGATION ====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  const mt = document.getElementById('musicToggle');
+  if (mt) mt.style.display = (id === 'homeScreen') ? 'none' : 'block';
+}
+function goHome() {
+  clearInterval(timerInterval); timerInterval = null;
+  showScreen('homeScreen');
+  resetGame();
+}
+function resetGame() {
+  currentQuiz = null; currentQuestionIndex = 0; gamePin = '';
+  players = []; answersCount = [0,0,0,0]; playerAnswers = {};
+  currentPlayer = null; hasAnswered = false; gameState = 'lobby';
+  clearInterval(timerInterval); timerInterval = null; timeLeft = 20;
+}
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ==================== IMPORT FROM API ====================
+function showImportScreen() {
+  importedQuestions = [];
+  document.getElementById('fetchLoading').style.display = 'none';
+  document.getElementById('fetchPreview').style.display = 'none';
+  document.getElementById('fetchBtn').disabled = false;
+  document.getElementById('previewList').innerHTML = '';
+  document.getElementById('importedTitle').value = '';
+  showScreen('importScreen');
+}
+
+async function fetchFromAPI() {
+  const amount = parseInt(document.getElementById('apiAmount').value) || 10;
+  const category = document.getElementById('apiCategory').value;
+  const difficulty = document.getElementById('apiDifficulty').value;
+
+  if (amount < 1 || amount > 50) {
+    showToast('عدد الأسئلة يجب أن يكون بين 1 و 50', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('fetchBtn');
+  const loading = document.getElementById('fetchLoading');
+  btn.disabled = true;
+  loading.style.display = 'block';
+
+  let url = `https://opentdb.com/api.php?amount=${amount}&type=multiple`;
+  if (category) url += `&category=${category}`;
+  if (difficulty) url += `&difficulty=${difficulty}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.response_code !== 0 || !data.results || data.results.length === 0) {
+      showToast('لم يتم العثور على أسئلة. جرب تصنيفاً آخر.', 'error');
+      btn.disabled = false;
+      loading.style.display = 'none';
+      return;
+    }
+
+    importedQuestions = data.results.map(q => {
+      const allAnswers = [...q.incorrect_answers, q.correct_answer];
+      // Shuffle answers
+      for (let i = allAnswers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
+      }
+      const correctIndex = allAnswers.indexOf(q.correct_answer);
+      return {
+        text: decodeHtmlEntities(q.question),
+        answers: allAnswers.map(a => decodeHtmlEntities(a)),
+        correct: correctIndex,
+        time: 20,
+        points: 'standard'
+      };
+    });
+
+    // Show preview
+    const previewList = document.getElementById('previewList');
+    previewList.innerHTML = importedQuestions.map((q, i) => `
+      <div class="preview-item">
+        <div class="preview-q">${i + 1}. ${escapeHtml(q.text)}</div>
+        <div class="preview-a">
+          ${q.answers.map((a, idx) => `<span style="${idx === q.correct ? 'color:var(--kahoot-green); font-weight:700;' : ''}">${escapeHtml(a)}</span>`).join(' | ')}
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('fetchPreview').style.display = 'block';
+    document.getElementById('importedTitle').value = 'اختبار ' + (document.getElementById('apiCategory').selectedOptions[0]?.text || 'عام');
+    showToast(`تم جلب ${importedQuestions.length} سؤال!`);
+
+  } catch (err) {
+    console.error(err);
+    showToast('خطأ في الاتصال. تأكد من الإنترنت.', 'error');
+  } finally {
+    btn.disabled = false;
+    loading.style.display = 'none';
+  }
+}
+
+function decodeHtmlEntities(text) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
+function saveImportedQuiz() {
+  const title = document.getElementById('importedTitle').value.trim();
+  if (!title) { showToast('أدخل عنوان الاختبار', 'error'); return; }
+  if (importedQuestions.length === 0) { showToast('لا توجد أسئلة للحفظ', 'error'); return; }
+
+  const newQuiz = {
+    id: 'quiz_' + Date.now(),
+    title: title,
+    questions: importedQuestions.map(q => ({ ...q }))
+  };
+
+  quizzes.push(newQuiz);
+  saveQuizzesToStorage();
+  showToast('تم حفظ الاختبار بنجاح!');
+  goHome();
+}
+
+function cancelImport() {
+  importedQuestions = [];
+  document.getElementById('fetchPreview').style.display = 'none';
+  document.getElementById('previewList').innerHTML = '';
+}
+
+function importFromJSON() {
+  const input = document.getElementById('jsonInput').value.trim();
+  if (!input) { showToast('ألصق JSON أولاً', 'error'); return; }
+
+  try {
+    const data = JSON.parse(input);
+    if (!data.questions || !Array.isArray(data.questions)) {
+      showToast('JSON غير صحيح: يجب أن يحتوي على "questions"', 'error');
+      return;
+    }
+
+    const newQuiz = {
+      id: 'quiz_' + Date.now(),
+      title: data.title || 'اختبار مستورد',
+      questions: data.questions.map(q => ({
+        text: q.text || q.question || '',
+        answers: q.answers || q.options || [],
+        correct: typeof q.correct === 'number' ? q.correct : 0,
+        time: q.time || 20,
+        points: q.points || 'standard'
+      }))
+    };
+
+    quizzes.push(newQuiz);
+    saveQuizzesToStorage();
+    showToast('تم استيراد الاختبار بنجاح!');
+    document.getElementById('jsonInput').value = '';
+    goHome();
+  } catch (e) {
+    showToast('JSON غير صالح: ' + e.message, 'error');
+  }
+}
+
+// ==================== QUIZ LIST ====================
+function showQuizList() {
+  const body = document.getElementById('quizListBody');
+  if (!body) return;
+  const validQuizzes = quizzes.filter(q => q && q.questions && q.questions.length > 0);
+  if (validQuizzes.length === 0) {
+    body.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard-list"></i><h3>لا توجد اختبارات</h3><p>أنشئ اختبارك الأول أو استورد من الإنترنت!</p></div>`;
+    showScreen('quizListScreen');
+    return;
+  }
+  body.innerHTML = validQuizzes.map(q => `
+    <div class="quiz-card" onclick="selectQuizForHost('${q.id}')">
+      <div class="quiz-card-info">
+        <h3>${escapeHtml(q.title || 'بدون عنوان')}</h3>
+        <p>${q.questions.length} سؤال</p>
+      </div>
+      <div class="quiz-card-actions">
+        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); hostQuiz('${q.id}')"><i class="fas fa-play"></i> العب</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteQuiz('${q.id}')"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+  showScreen('quizListScreen');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function deleteQuiz(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا الاختبار؟')) return;
+  quizzes = quizzes.filter(q => q && q.id !== id);
+  saveQuizzesToStorage();
+  showQuizList();
+  showToast('تم الحذف', 'success');
+}
+
+function selectQuizForHost(id) { hostQuiz(id); }
+
+// ==================== HOST ====================
+function hostQuiz(quizId) {
+  currentQuiz = quizzes.find(q => q && q.id === quizId);
+  if (!currentQuiz || !currentQuiz.questions || currentQuiz.questions.length === 0) {
+    showToast('الاختبار غير موجود أو فارغ', 'error');
+    return;
+  }
+  gamePin = Math.floor(100000 + Math.random() * 900000).toString();
+  players = []; currentQuestionIndex = 0; gameState = 'lobby'; hasAnswered = false;
+
+  const pinEl = document.getElementById('gamePin');
+  const lobbyEl = document.getElementById('lobbyPlayers');
+  const startBtn = document.getElementById('startGameBtn');
+  if (pinEl) pinEl.textContent = gamePin;
+  if (lobbyEl) lobbyEl.innerHTML = '';
+  if (startBtn) startBtn.disabled = true;
+
+  const lobbyView = document.getElementById('hostLobbyView');
+  const qView = document.getElementById('hostQuestionView');
+  const lbView = document.getElementById('hostLeaderboardView');
+  if (lobbyView) lobbyView.style.display = 'flex';
+  if (qView) qView.classList.remove('active');
+  if (lbView) lbView.classList.remove('active');
+
+  showScreen('hostLobbyScreen');
+  showToast('تم إنشاء اللعبة! الرمز: ' + gamePin);
+  playSound('join');
+
+  setTimeout(() => {
+    if (players.length === 0 && gameState === 'lobby') {
+      addPlayer({ name: 'أحمد', id: 'demo1', score: 0, streak: 0 });
+      addPlayer({ name: 'سارة', id: 'demo2', score: 0, streak: 0 });
+      addPlayer({ name: 'خالد', id: 'demo3', score: 0, streak: 0 });
+      showToast('انضم 3 لاعبين تجريبيين للاختبار!');
+    }
+  }, 3000);
+}
+
+function addPlayer(p) {
+  if (!p || !p.id) return;
+  if (players.find(pl => pl.id === p.id)) return;
+  players.push(p);
+  const lobby = document.getElementById('lobbyPlayers');
+  const startBtn = document.getElementById('startGameBtn');
+  if (lobby) {
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    chip.textContent = p.name;
+    chip.id = 'player-' + p.id;
+    lobby.appendChild(chip);
+  }
+  if (startBtn) startBtn.disabled = players.length < 1;
+  playSound('join');
+}
+
+function startGame() {
+  if (!currentQuiz || !currentQuiz.questions || currentQuiz.questions.length === 0) return;
+  gameState = 'question'; hasAnswered = false;
+  playSound('start');
+  showHostQuestion();
+}
+
+function showHostQuestion() {
+  const lobbyView = document.getElementById('hostLobbyView');
+  const qView = document.getElementById('hostQuestionView');
+  const lbView = document.getElementById('hostLeaderboardView');
+  if (lobbyView) lobbyView.style.display = 'none';
+  if (qView) qView.classList.add('active');
+  if (lbView) lbView.classList.remove('active');
+
+  const q = currentQuiz.questions[currentQuestionIndex];
+  if (!q) return;
+
+  const qNum = document.getElementById('hostQNumber');
+  const qText = document.getElementById('hostQuestionText');
+  const qCount = document.getElementById('hostQCount');
+  if (qNum) qNum.textContent = `السؤال ${currentQuestionIndex + 1} من ${currentQuiz.questions.length}`;
+  if (qText) qText.textContent = q.text || '';
+  if (qCount) qCount.textContent = 'إجابات: 0';
+
+  const colors = ['red', 'blue', 'green', 'yellow'];
+  const shapes = ['▲', '◆', '●', '■'];
+  const answersShow = document.getElementById('hostAnswersShow');
+  if (answersShow) {
+    for (let i = 0; i < 4; i++) {
+      const ansText = document.getElementById('ansText' + i);
+      const ansCount = document.getElementById('ansCount' + i);
+      const el = answersShow.children[i];
+      if (ansText) ansText.textContent = q.answers[i] || '';
+      if (ansCount) ansCount.textContent = '0';
+      if (el) {
+        el.className = 'answer-show ' + colors[i];
+        el.style.opacity = '1';
+        const icon = el.querySelector('.answer-icon');
+        if (icon) icon.textContent = shapes[i];
+      }
+    }
+  }
+
+  answersCount = [0,0,0,0]; playerAnswers = {}; hasAnswered = false;
+  timeLeft = q.time || 20;
+  updateTimerDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval); timerInterval = null;
+      showCorrectAnswer();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('hostTimer');
+  if (!el) return;
+  el.textContent = timeLeft;
+  el.classList.remove('warning', 'danger');
+  if (timeLeft <= 5) el.classList.add('danger');
+  else if (timeLeft <= 10) el.classList.add('warning');
+  if (timeLeft <= 5) playSound('tick');
+}
+
+function showCorrectAnswer() {
+  const q = currentQuiz.questions[currentQuestionIndex];
+  if (!q) return;
+  const answersShow = document.getElementById('hostAnswersShow');
+  if (answersShow) {
+    for (let i = 0; i < 4; i++) {
+      const el = answersShow.children[i];
+      if (!el) continue;
+      if (i === q.correct) el.classList.add('correct');
+      else el.style.opacity = '0.4';
+    }
+  }
+
+  const maxPoints = q.points === 'double' ? 2000 : q.points === 'zero' ? 0 : 1000;
+  players.forEach(p => {
+    const ans = playerAnswers[p.id];
+    if (ans !== undefined && ans === q.correct) {
+      const timeBonus = Math.floor((timeLeft / (q.time || 20)) * maxPoints * 0.5);
+      const basePoints = maxPoints * 0.5;
+      p.streak = (p.streak || 0) + 1;
+      let streakBonus = 0;
+      if (p.streak >= 3) streakBonus = 100;
+      if (p.streak >= 5) streakBonus = 500;
+      p.score += (basePoints + timeBonus + streakBonus);
+      p.lastCorrect = true;
+    } else {
+      p.streak = 0; p.lastCorrect = false;
+    }
+  });
+
+  setTimeout(() => showLeaderboard(), 3000);
+}
+
+function showLeaderboard() {
+  const qView = document.getElementById('hostQuestionView');
+  const lbView = document.getElementById('hostLeaderboardView');
+  if (qView) qView.classList.remove('active');
+  if (lbView) lbView.classList.add('active');
+
+  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const list = document.getElementById('leaderboardList');
+  if (list) {
+    list.innerHTML = sorted.map((p, i) => {
+      let rankClass = 'rank-other';
+      if (i === 0) rankClass = 'rank-1';
+      else if (i === 1) rankClass = 'rank-2';
+      else if (i === 2) rankClass = 'rank-3';
+      let change = p.lastCorrect ? '<span class="leaderboard-change change-up">+<i class="fas fa-arrow-up"></i></span>' : '<span class="leaderboard-change change-same">-</span>';
+      return `<div class="leaderboard-item"><div class="leaderboard-rank ${rankClass}">${i + 1}</div><div class="leaderboard-name">${escapeHtml(p.name || 'لاعب')}</div>${change}<div class="leaderboard-score">${p.score || 0}</div></div>`;
+    }).join('');
+  }
+
+  const isLast = currentQuestionIndex >= currentQuiz.questions.length - 1;
+  const nextBtn = document.getElementById('nextQuestionBtn');
+  const endBtn = document.getElementById('endGameBtn');
+  if (nextBtn) nextBtn.style.display = isLast ? 'none' : 'inline-flex';
+  if (endBtn) endBtn.style.display = isLast ? 'inline-flex' : 'none';
+}
+
+function nextQuestion() {
+  currentQuestionIndex++;
+  const answersShow = document.getElementById('hostAnswersShow');
+  if (answersShow) {
+    for (let i = 0; i < 4; i++) {
+      const el = answersShow.children[i];
+      if (el) el.style.opacity = '1';
+    }
+  }
+  showHostQuestion();
+}
+
+function showPodium() {
+  const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
+  const container = document.getElementById('podiumContainer');
+  if (!container) return;
+
+  const places = [1, 0, 2];
+  const placeData = [{ cls: 'place-2', label: 2 }, { cls: 'place-1', label: 1 }, { cls: 'place-3', label: 3 }];
+
+  container.innerHTML = places.map((idx, i) => {
+    const p = sorted[idx];
+    if (!p) return '';
+    const pd = placeData[i];
+    return `<div class="podium-place ${pd.cls}"><div class="podium-avatar">${pd.label}</div><div class="podium-name">${escapeHtml(p.name || 'لاعب')}</div><div class="podium-score">${p.score || 0} نقطة</div><div class="podium-block">${pd.label}</div></div>`;
+  }).join('');
+
+  const podiumScreen = document.getElementById('podiumScreen');
+  if (podiumScreen) {
+    podiumScreen.querySelectorAll('.confetti').forEach(c => c.remove());
+    for (let i = 0; i < 30; i++) {
+      const conf = document.createElement('div');
+      conf.className = 'confetti';
+      conf.style.left = Math.random() * 100 + '%';
+      conf.style.background = ['#ff3355', '#45a3e5', '#26890c', '#ffd700', '#eb670f'][Math.floor(Math.random() * 5)];
+      conf.style.animationDuration = (2 + Math.random() * 3) + 's';
+      conf.style.animationDelay = Math.random() * 2 + 's';
+      podiumScreen.appendChild(conf);
+    }
+  }
+  playSound('win');
+  showScreen('podiumScreen');
+}
+
+function endHostGame() {
+  if (confirm('هل تريد إنهاء اللعبة؟')) goHome();
+}
+
+// ==================== PLAYER ====================
+function joinGame() {
+  const pin = document.getElementById('joinPin');
+  const name = document.getElementById('joinName');
+  const pinVal = pin ? pin.value.trim() : '';
+  const nameVal = name ? name.value.trim() : '';
+
+  if (!pinVal || pinVal.length !== 6) { showToast('أدخل رمزًا صحيحًا (6 أرقام)', 'error'); return; }
+  if (!nameVal) { showToast('أدخل اسمك', 'error'); return; }
+
+  if (gamePin && gamePin === pinVal && gameState === 'lobby') {
+    currentPlayer = { id: 'p_' + Date.now(), name: nameVal, score: 0, streak: 0 };
+    addPlayer(currentPlayer);
+    const waitName = document.getElementById('playerWaitName');
+    if (waitName) waitName.textContent = nameVal;
+    showScreen('playerGameScreen');
+    showPlayerWaiting();
+    showToast('تم الانضمام بنجاح!');
+  } else if (gamePin && gamePin === pinVal && gameState !== 'lobby') {
+    showToast('اللعبة بدأت بالفعل!', 'error');
+  } else {
+    showToast('لا يوجد مضيف نشط. سيتم بدء وضع التدريب!', 'success');
+    setTimeout(() => startSoloMode(nameVal), 1000);
+  }
+}
+
+function startSoloMode(name) {
+  currentQuiz = (quizzes && quizzes.length > 0) ? quizzes[0] : DEMO_QUIZ;
+  if (!currentQuiz || !currentQuiz.questions) currentQuiz = DEMO_QUIZ;
+  currentQuestionIndex = 0;
+  currentPlayer = { id: 'solo', name: name, score: 0, streak: 0 };
+  players = [currentPlayer];
+  gameState = 'question'; hasAnswered = false;
+  clearInterval(timerInterval); timerInterval = null;
+  showScreen('playerGameScreen');
+  showPlayerQuestion();
+}
+
+function showPlayerWaiting() {
+  const waiting = document.getElementById('playerWaitingView');
+  const question = document.getElementById('playerQuestionView');
+  const correct = document.getElementById('playerCorrectView');
+  const wrong = document.getElementById('playerWrongView');
+  const timeout = document.getElementById('playerTimeoutView');
+  if (waiting) waiting.classList.add('active');
+  if (question) question.classList.remove('active');
+  if (correct) correct.classList.remove('active');
+  if (wrong) wrong.classList.remove('active');
+  if (timeout) timeout.classList.remove('active');
+}
+
+function showPlayerQuestion() {
+  if (!currentQuiz || !currentQuiz.questions || currentQuestionIndex >= currentQuiz.questions.length) {
+    showSoloResults(); return;
+  }
+  const q = currentQuiz.questions[currentQuestionIndex];
+  if (!q) { showSoloResults(); return; }
+
+  const waiting = document.getElementById('playerWaitingView');
+  const question = document.getElementById('playerQuestionView');
+  const correct = document.getElementById('playerCorrectView');
+  const wrong = document.getElementById('playerWrongView');
+  const timeout = document.getElementById('playerTimeoutView');
+
+  if (waiting) waiting.classList.remove('active');
+  if (question) question.classList.add('active');
+  if (correct) correct.classList.remove('active');
+  if (wrong) wrong.classList.remove('active');
+  if (timeout) timeout.classList.remove('active');
+
+  const qTop = document.getElementById('playerQTopText');
+  const qText = document.getElementById('playerQuestionText');
+  if (qTop) qTop.textContent = `السؤال ${currentQuestionIndex + 1} من ${currentQuiz.questions.length}`;
+  if (qText) qText.textContent = q.text || '';
+
+  for (let i = 0; i < 4; i++) {
+    const ansSpan = document.getElementById('pAns' + i);
+    const btn = document.getElementById('pBtn' + i);
+    if (ansSpan) ansSpan.textContent = q.answers[i] || '';
+    if (btn) {
+      btn.classList.remove('selected', 'correct-anim', 'wrong-anim');
+      btn.disabled = false;
+      btn.style.pointerEvents = 'auto';
+      btn.style.opacity = '1';
+    }
+  }
+
+  hasAnswered = false;
+  timeLeft = q.time || 20;
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval); timerInterval = null;
+      if (!hasAnswered) handlePlayerResult(false, true);
+    }
+  }, 1000);
+}
+
+function submitAnswer(idx) {
+  if (hasAnswered) return;
+  if (!currentQuiz || !currentQuiz.questions || currentQuestionIndex >= currentQuiz.questions.length) return;
+
+  hasAnswered = true;
+  clearInterval(timerInterval); timerInterval = null;
+
+  const q = currentQuiz.questions[currentQuestionIndex];
+  if (!q) return;
+  const isCorrect = idx === q.correct;
+
+  const btn = document.getElementById('pBtn' + idx);
+  if (btn) { btn.classList.add('selected'); createRipple(btn); }
+
+  for (let i = 0; i < 4; i++) {
+    const b = document.getElementById('pBtn' + i);
+    if (b) { b.disabled = true; b.style.pointerEvents = 'none'; }
+  }
+
+  setTimeout(() => {
+    if (isCorrect) { if (btn) btn.classList.add('correct-anim'); }
+    else {
+      if (btn) btn.classList.add('wrong-anim');
+      const correctBtn = document.getElementById('pBtn' + q.correct);
+      if (correctBtn) correctBtn.classList.add('correct-anim');
+    }
+    handlePlayerResult(isCorrect, false);
+  }, 600);
+}
+
+function createRipple(button) {
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple';
+  ripple.style.left = '50%';
+  ripple.style.top = '50%';
+  button.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+}
+
+function handlePlayerResult(isCorrect, isTimeout) {
+  const q = currentQuiz.questions[currentQuestionIndex];
+  if (!q) return;
+  const maxPoints = q.points === 'double' ? 2000 : q.points === 'zero' ? 0 : 1000;
+
+  const question = document.getElementById('playerQuestionView');
+  const correctView = document.getElementById('playerCorrectView');
+  const wrongView = document.getElementById('playerWrongView');
+  const timeoutView = document.getElementById('playerTimeoutView');
+  if (question) question.classList.remove('active');
+
+  if (isTimeout) {
+    if (timeoutView) timeoutView.classList.add('active');
+    playSound('timeout');
+    if (currentPlayer) currentPlayer.streak = 0;
+  } else if (isCorrect) {
+    const timeBonus = Math.floor((timeLeft / (q.time || 20)) * maxPoints * 0.5);
+    const basePoints = maxPoints * 0.5;
+    if (currentPlayer) {
+      currentPlayer.streak = (currentPlayer.streak || 0) + 1;
+      let streakBonus = 0;
+      if (currentPlayer.streak >= 3) streakBonus = 100;
+      if (currentPlayer.streak >= 5) streakBonus = 500;
+      currentPlayer.score += (basePoints + timeBonus + streakBonus);
+    }
+    const cp = document.getElementById('correctPoints');
+    if (cp) cp.textContent = `+${basePoints + timeBonus} نقطة`;
+    if (correctView) correctView.classList.add('active');
+    playSound('correct');
+  } else {
+    if (currentPlayer) currentPlayer.streak = 0;
+    if (wrongView) wrongView.classList.add('active');
+    playSound('wrong');
+  }
+
+  setTimeout(() => {
+    currentQuestionIndex++;
+    if (currentQuiz && currentQuestionIndex < currentQuiz.questions.length) {
+      showPlayerQuestion();
+    } else {
+      showSoloResults();
+    }
+  }, 2500);
+}
+
+function showSoloResults() {
+  if (currentPlayer) players = [currentPlayer, { name: '---', score: 0 }, { name: '---', score: 0 }];
+  showPodium();
+}
+
+// ==================== CREATE ====================
+let createQuestions = [];
+
+function showCreateScreen() {
+  createQuestions = [];
+  const title = document.getElementById('quizTitle');
+  const container = document.getElementById('questionsContainer');
+  if (title) title.value = '';
+  if (container) container.innerHTML = '';
+  addQuestion();
+  showScreen('createScreen');
+}
+
+function addQuestion() {
+  const idx = createQuestions.length;
+  createQuestions.push({ text: '', answers: ['', '', '', ''], correct: 0, time: 20, points: 'standard' });
+
+  const container = document.getElementById('questionsContainer');
+  if (!container) return;
+
+  const div = document.createElement('div');
+  div.className = 'question-card';
+  div.id = 'qCard_' + idx;
+  div.innerHTML = `
+    <div class="question-header">
+      <h3>سؤال ${idx + 1}</h3>
+      <button class="btn btn-sm btn-danger" onclick="removeQuestion(${idx})" ${idx === 0 ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-trash"></i></button>
+    </div>
+    <input type="text" class="question-input" id="qText_${idx}" placeholder="اكتب السؤال هنا..." onchange="updateQuestion(${idx})">
+    <div class="answers-grid">
+      <div class="answer-input-wrapper">
+        <div class="correct-check ${createQuestions[idx].correct === 0 ? 'active' : ''}" id="check_${idx}_0" onclick="setCorrect(${idx}, 0)"><i class="fas fa-check"></i></div>
+        <input type="text" class="answer-input red" id="qAns_${idx}_0" placeholder="الإجابة الأولى" onchange="updateQuestion(${idx})">
+      </div>
+      <div class="answer-input-wrapper">
+        <div class="correct-check ${createQuestions[idx].correct === 1 ? 'active' : ''}" id="check_${idx}_1" onclick="setCorrect(${idx}, 1)"><i class="fas fa-check"></i></div>
+        <input type="text" class="answer-input blue" id="qAns_${idx}_1" placeholder="الإجابة الثانية" onchange="updateQuestion(${idx})">
+      </div>
+      <div class="answer-input-wrapper">
+        <div class="correct-check ${createQuestions[idx].correct === 2 ? 'active' : ''}" id="check_${idx}_2" onclick="setCorrect(${idx}, 2)"><i class="fas fa-check"></i></div>
+        <input type="text" class="answer-input green" id="qAns_${idx}_2" placeholder="الإجابة الثالثة" onchange="updateQuestion(${idx})">
+      </div>
+      <div class="answer-input-wrapper">
+        <div class="correct-check ${createQuestions[idx].correct === 3 ? 'active' : ''}" id="check_${idx}_3" onclick="setCorrect(${idx}, 3)"><i class="fas fa-check"></i></div>
+        <input type="text" class="answer-input yellow" id="qAns_${idx}_3" placeholder="الإجابة الرابعة" onchange="updateQuestion(${idx})">
+      </div>
+    </div>
+    <div style="margin-top:15px; display:flex; gap:20px; flex-wrap:wrap;">
+      <div>
+        <label style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:5px;">الوقت:</label>
+        <div class="time-select">
+          <div class="time-option ${createQuestions[idx].time === 5 ? 'active' : ''}" onclick="setTime(${idx}, 5)">5ث</div>
+          <div class="time-option ${createQuestions[idx].time === 10 ? 'active' : ''}" onclick="setTime(${idx}, 10)">10ث</div>
+          <div class="time-option ${createQuestions[idx].time === 15 ? 'active' : ''}" onclick="setTime(${idx}, 15)">15ث</div>
+          <div class="time-option ${createQuestions[idx].time === 20 ? 'active' : ''}" onclick="setTime(${idx}, 20)">20ث</div>
+          <div class="time-option ${createQuestions[idx].time === 30 ? 'active' : ''}" onclick="setTime(${idx}, 30)">30ث</div>
+          <div class="time-option ${createQuestions[idx].time === 60 ? 'active' : ''}" onclick="setTime(${idx}, 60)">60ث</div>
+        </div>
+      </div>
+      <div>
+        <label style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:5px;">النقاط:</label>
+        <div class="points-select">
+          <div class="points-option ${createQuestions[idx].points === 'standard' ? 'active' : ''}" onclick="setPoints(${idx}, 'standard')">عادي</div>
+          <div class="points-option ${createQuestions[idx].points === 'double' ? 'active' : ''}" onclick="setPoints(${idx}, 'double')">مزدوج</div>
+          <div class="points-option ${createQuestions[idx].points === 'zero' ? 'active' : ''}" onclick="setPoints(${idx}, 'zero')">بدون نقاط</div>
+        </div>
+      </div>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function updateQuestion(idx) {
+  if (!createQuestions[idx]) return;
+  const q = createQuestions[idx];
+  const textEl = document.getElementById('qText_' + idx);
+  if (textEl) q.text = textEl.value;
+  for (let i = 0; i < 4; i++) {
+    const ansEl = document.getElementById('qAns_' + idx + '_' + i);
+    if (ansEl) q.answers[i] = ansEl.value;
+  }
+}
+
+function setCorrect(qIdx, aIdx) {
+  if (!createQuestions[qIdx]) return;
+  createQuestions[qIdx].correct = aIdx;
+  for (let i = 0; i < 4; i++) {
+    const check = document.getElementById('check_' + qIdx + '_' + i);
+    if (check) check.classList.toggle('active', i === aIdx);
+  }
+}
+
+function setTime(qIdx, time) {
+  if (!createQuestions[qIdx]) return;
+  createQuestions[qIdx].time = time;
+  const card = document.getElementById('qCard_' + qIdx);
+  if (!card) return;
+  const opts = card.querySelectorAll('.time-option');
+  opts.forEach(o => { o.classList.toggle('active', o.textContent === time + 'ث'); });
+}
+
+function setPoints(qIdx, pts) {
+  if (!createQuestions[qIdx]) return;
+  createQuestions[qIdx].points = pts;
+  const card = document.getElementById('qCard_' + qIdx);
+  if (!card) return;
+  const opts = card.querySelectorAll('.points-option');
+  const labels = { standard: 'عادي', double: 'مزدوج', zero: 'بدون نقاط' };
+  opts.forEach(o => { o.classList.toggle('active', o.textContent === labels[pts]); });
+}
+
+function removeQuestion(idx) {
+  if (createQuestions.length <= 1) return;
+  createQuestions.splice(idx, 1);
+  const container = document.getElementById('questionsContainer');
+  if (container) container.innerHTML = '';
+  const old = [...createQuestions];
+  createQuestions = [];
+  old.forEach((q, i) => {
+    addQuestion();
+    const textEl = document.getElementById('qText_' + i);
+    if (textEl) textEl.value = q.text || '';
+    for (let a = 0; a < 4; a++) {
+      const ansEl = document.getElementById('qAns_' + i + '_' + a);
+      if (ansEl) ansEl.value = q.answers[a] || '';
+    }
+    setCorrect(i, q.correct);
+    setTime(i, q.time);
+    setPoints(i, q.points);
+  });
+}
+
+function saveQuiz() {
+  const titleEl = document.getElementById('quizTitle');
+  const title = titleEl ? titleEl.value.trim() : '';
+  if (!title) { showToast('أدخل عنوان الاختبار', 'error'); return; }
+
+  createQuestions.forEach((q, idx) => updateQuestion(idx));
+
+  for (let i = 0; i < createQuestions.length; i++) {
+    const q = createQuestions[i];
+    if (!q || !q.text || !q.text.trim()) { showToast(`السؤال ${i + 1} فارغ!`, 'error'); return; }
+    if (!q.answers || q.answers.some(a => !a || !a.trim())) { showToast(`أكمل إجابات السؤال ${i + 1}`, 'error'); return; }
+  }
+
+  const newQuiz = {
+    id: 'quiz_' + Date.now(),
+    title: title,
+    questions: createQuestions.map(q => ({ ...q }))
+  };
+
+  quizzes.push(newQuiz);
+  saveQuizzesToStorage();
+  showToast('تم حفظ الاختبار بنجاح!');
+  goHome();
+}
+
+// ==================== INIT ====================
+function init() {
+  if (!quizzes.find(q => q && q.id === 'demo')) {
+    quizzes.unshift(DEMO_QUIZ);
+    saveQuizzesToStorage();
+  }
+}
+init();
+</script>
+</body>
+</html>
