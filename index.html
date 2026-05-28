@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عوالم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0b1a1f;
+  --bg2:#0e2229;
+  --card:#122530;
+  --border:rgba(180,150,80,0.15);
+  --border2:rgba(180,150,80,0.3);
+  --text:#e8efe8;
+  --muted:#5a7a72;
+  --acc:#1e6b6b;
+  --acc2:#c8a84b;
+  --gold:#d4af5a;
+  --gold2:#f0d080;
+  --teal:#1a5f5f;
+  --teal2:#2a8a8a;
+  --green:#2e9b5c;
+  --red:#c04040;
+  --sidebar-bg:linear-gradient(180deg,#0d2535 0%,#0a1e2a 50%,#0d2030 100%);
+  --main-bg:linear-gradient(135deg,#e8dcc8 0%,#d4c8b0 30%,#c8d8d0 60%,#b0ccc8 100%);
+  --header-bg:rgba(13,37,53,0.95);
+}
+body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(180,150,80,0.2);border-radius:4px}
+
+/* ════ SERVER LIST ════ */
+#serverList{
+  width:70px;background:var(--bg);display:flex;flex-direction:column;align-items:center;
+  padding:10px 0;gap:6px;overflow-y:auto;
+  border-left:1px solid var(--border);
+  position:relative;z-index:210;
+}
+.sv-item{
+  width:46px;height:46px;border-radius:23px;
+  background:rgba(26,95,95,0.3);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:20px;font-weight:800;color:var(--muted);
+  transition:.25s;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  user-select:none;
+  pointer-events:auto;
+}
+.sv-item:hover,.sv-item.active{
+  border-radius:14px;background:var(--teal);border-color:var(--gold);
+  color:#fff;box-shadow:0 0 12px rgba(26,95,95,0.5);
+}
+.sv-item img{width:100%;height:100%;border-radius:inherit;object-fit:cover}
+.sv-sep{width:28px;height:1px;background:var(--border2);border-radius:2px;margin:2px 0}
+.sv-add{color:var(--gold);border-color:var(--border)}
+.sv-add:hover{background:rgba(200,168,75,0.2)!important;border-color:var(--gold2)!important;color:var(--gold2)!important}
+
+/* ════ MEDIA PREVIEW ════ */
+#mediaPreviewArea {
+  display:none;
+  padding:8px 10px 0;
+  gap:8px;
+  flex-wrap:wrap;
+  border-bottom:1px solid rgba(200,168,75,0.15);
+}
+
+/* ════ SV-ITEM long-press hint ════ */
+.sv-item-wrap { position:relative; }
+.sv-ctx-menu {
+  position:absolute;
+  left:-130px; top:0;
+  background:linear-gradient(160deg,#122530,#0d1e28);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  padding:6px;
+  z-index:500;
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  min-width:130px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+.sv-ctx-menu.show { display:flex; }
+.sv-ctx-btn {
+  padding:8px 12px;border-radius:7px;border:none;
+  background:transparent;color:var(--text);
+  font-family:Tajawal,sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;text-align:right;transition:.15s;
+}
+.sv-ctx-btn:hover { background:rgba(255,255,255,0.07); }
+.sv-ctx-btn.danger { color:#e06060; }
+
+/* ════ HAMBURGER BUTTON (mobile only) ════ */
+#mobHamburger {
+  display: none;
+  width: 34px; height: 34px; border-radius: 8px;
+  align-items: center; justify-content: center;
+  cursor: pointer; color: var(--gold); font-size: 20px;
+  background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.2);
+  transition: .2s; flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+#mobHamburger:hover { background: rgba(200,168,75,0.25); }
+
+/* ════ CHANNEL SIDEBAR ════ */
+#channelSidebar{
+  width:248px;
+  background:var(--sidebar-bg);
+  display:flex;flex-direction:column;overflow:hidden;
+  border-left:1px solid var(--border2);
+}
+.ch-header{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,0.2);
+  position:relative;
+}
+.ch-header::after{
+  content:'';position:absolute;bottom:0;left:10%;right:10%;
+  height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.ch-server-name{font-size:15px;font-weight:800;color:var(--text)}
+.ch-header-icons{display:flex;gap:6px;align-items:center}
+.ch-header-icon{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);transition:.2s;font-size:14px;
+}
+.ch-header-icon:hover{background:rgba(255,255,255,.06);color:var(--text)}
+.back-btn{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--gold);transition:.2s;font-size:16px;
+  background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.2);
+}
+.back-btn:hover{background:rgba(200,168,75,0.25);color:var(--gold2)}
+.ch-list{flex:1;overflow-y:auto;padding:8px 0}
+.ch-section-title{
+  font-size:10px;font-weight:700;color:var(--gold);
+  padding:14px 16px 5px;letter-spacing:1px;
+  display:flex;align-items:center;gap:8px;
+}
+.ch-section-title::before{content:'◆';font-size:8px;opacity:.7}
+.ch-item{
+  display:flex;align-items:center;gap:8px;padding:8px 12px 8px 16px;
+  border-radius:8px;margin:1px 8px;cursor:pointer;transition:.15s;
+  color:var(--muted);font-size:14px;font-weight:500;
+  position:relative;
+}
+.ch-item:hover{background:rgba(26,95,95,0.15);color:var(--text)}
+.ch-item.active{background:rgba(26,95,95,0.25);color:var(--text)}
+.ch-item.active::before{
+  content:'';position:absolute;right:0;top:20%;bottom:20%;
+  width:3px;border-radius:3px 0 0 3px;background:var(--gold);
+}
+.ch-item-icon{font-size:15px;opacity:.8;color:var(--gold);opacity:.6}
+.ch-item-name{flex:1;font-size:13px}
+.ch-badge{
+  background:var(--gold);color:#0a1e2a;font-size:10px;font-weight:800;
+  padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;
+}
+
+/* ════ VOICE BAR ════ */
+.voice-connected{
+  background:rgba(0,0,0,0.3);border-top:1px solid var(--border2);
+  padding:8px;display:none;flex-direction:column;gap:4px;
+}
+.voice-connected.show{display:flex}
+.vc-info{color:var(--green);font-size:12px;font-weight:700;padding:4px 8px}
+.vc-btns{display:flex;gap:6px;padding:4px 8px;justify-content:center}
+.vc-btn{
+  width:30px;height:30px;border-radius:8px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  color:var(--muted);cursor:pointer;transition:.15s;font-size:14px;
+}
+.vc-btn:hover{background:rgba(255,255,255,.12);color:var(--text)}
+.vc-btn.muted{background:rgba(192,64,64,.15);color:var(--red);border-color:rgba(192,64,64,.3)}
+
+/* ════ USER PANEL ════ */
+.user-panel{
+  height:58px;
+  background:linear-gradient(90deg,rgba(0,0,0,0.4),rgba(13,37,53,0.8));
+  border-top:1px solid var(--border2);
+  padding:0 10px;display:flex;align-items:center;gap:8px;
+}
+.up-av{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--teal),var(--acc2));
+  border:2px solid var(--gold);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;position:relative;
+}
+.up-av::after{
+  content:'';position:absolute;bottom:1px;right:1px;
+  width:9px;height:9px;border-radius:50%;background:var(--green);
+  border:2px solid var(--bg);
+}
+.up-info{flex:1;min-width:0}
+.up-name{font-size:13px;font-weight:700;color:var(--text)}
+.up-tag{font-size:11px;color:var(--muted)}
+.up-btns{display:flex;gap:2px}
+.up-btn{
+  width:30px;height:30px;border-radius:6px;background:transparent;
+  border:none;color:var(--muted);cursor:pointer;transition:.2s;font-size:15px;
+}
+.up-btn:hover{background:rgba(255,255,255,.06);color:var(--text)}
+
+/* ════ MAIN CONTENT ════ */
+#mainContent{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{
+  height:50px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:10px;
+  background:var(--header-bg);backdrop-filter:blur(10px);
+  box-shadow:0 2px 10px rgba(0,0,0,0.3);
+}
+.main-header-back{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--gold);font-size:16px;
+  background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.2);
+  transition:.2s;flex-shrink:0;
+}
+.main-header-back:hover{background:rgba(200,168,75,0.25)}
+.main-header-icon{font-size:18px;color:var(--gold);opacity:.8}
+.main-header-name{font-size:15px;font-weight:700;flex:1}
+
+/* ════ HOME VIEW ════ */
+#homeView{
+  flex:1;
+  background:var(--main-bg);
+  display:flex;flex-direction:column;
+  overflow:hidden;position:relative;
+}
+#homeView::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8a84b' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.home-logo{
+  width:100px;height:100px;border-radius:28px;
+  background:linear-gradient(135deg,#1a5f6a,#0d4a5a);
+  border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:48px;box-shadow:0 8px 30px rgba(0,0,0,0.3),0 0 0 6px rgba(200,168,75,0.1);
+  position:relative;z-index:1;
+}
+.home-title{font-size:28px;font-weight:900;color:#1a3a3a;position:relative;z-index:1}
+.home-sub{font-size:14px;color:#4a7a7a;position:relative;z-index:1}
+.home-icon-big{font-size:80px;opacity:.15;position:absolute;bottom:20px;right:30px}
+.home-select-msg{
+  background:rgba(255,255,255,0.6);backdrop-filter:blur(10px);
+  border:1px solid rgba(200,168,75,0.3);border-radius:16px;
+  padding:20px 40px;text-align:center;position:relative;z-index:1;
+}
+.home-select-msg .hs-icon{font-size:40px;margin-bottom:8px}
+.home-select-msg .hs-title{font-size:16px;font-weight:700;color:#1a3a3a}
+.home-select-msg .hs-sub{font-size:13px;color:#4a7a7a;margin-top:4px}
+
+/* ════ MESSAGES ════ */
+#messagesView{
+  flex:1;display:none;flex-direction:column;overflow:hidden;
+  background:linear-gradient(135deg,#e8dcc8 0%,#d4c8b0 30%,#c8d8d0 70%,#b0ccc8 100%);
+}
+#messagesArea{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 0 8px;display:flex;flex-direction:column;gap:2px;
+}
+.msg-group{display:flex;gap:14px;padding:6px 16px;border-radius:4px}
+.msg-group:hover{background:rgba(0,0,0,0.04)}
+.msg-av{
+  width:38px;height:38px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1a6060,#0d4545);
+  border:2px solid rgba(200,168,75,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:#fff;
+}
+.msg-body{flex:1}
+.msg-meta{display:flex;gap:8px;margin-bottom:3px;align-items:baseline}
+.msg-name{font-size:14px;font-weight:700;color:#1a3a3a}
+.msg-admin-badge{
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  color:#0a1e1a;font-size:9px;font-weight:800;
+  padding:1px 5px;border-radius:4px;
+}
+.msg-time{font-size:11px;color:#8a9a90}
+.msg-content{font-size:14px;line-height:1.6;color:#2a3a34}
+
+/* ════ CHAT INPUT ════ */
+.chat-input-wrap{
+  padding:8px 10px;
+  flex-shrink:0;
+  background:linear-gradient(135deg,#e8dcc8 0%,#d4c8b0 30%,#c8d8d0 70%,#b0ccc8 100%);
+}
+.chat-input-box{
+  background:rgba(255,255,255,0.8);backdrop-filter:blur(10px);
+  border-radius:14px;border:1px solid rgba(200,168,75,0.35);
+  box-shadow:0 2px 10px rgba(0,0,0,0.1);
+  display:flex;flex-direction:column;
+}
+#mediaPreviewArea{
+  display:none;
+  padding:8px 10px 6px;
+  gap:8px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(200,168,75,0.15);
+}
+.chat-input-top{
+  display:flex;align-items:flex-end;
+  padding:4px 6px 4px 4px;
+  gap:2px;
+}
+.chat-inp{
+  flex:1;background:transparent;border:none;
+  color:#1a3a3a;font-family:Tajawal,sans-serif;font-size:15px;
+  padding:10px 12px;outline:none;resize:none;
+  min-height:42px;max-height:140px;line-height:1.5;
+}
+.chat-inp::placeholder{color:#8aaa98}
+.ci-btn{
+  width:36px;height:36px;flex-shrink:0;
+  border-radius:8px;background:transparent;
+  border:none;color:#8aaa98;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;margin-bottom:3px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.ci-btn:hover{color:#1a5f5f}
+.ci-btn.send{
+  background:linear-gradient(135deg,var(--teal),var(--acc));
+  color:#fff;opacity:.45;border-radius:10px;
+  width:38px;height:38px;
+}
+.ci-btn.send.active{opacity:1;box-shadow:0 2px 8px rgba(26,95,95,0.4)}
+
+/* ════ VOICE VIEW ════ */
+#voiceView{
+  flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;padding:40px;
+  background:linear-gradient(135deg,#e8dcc8 0%,#d4c8b0 30%,#c8d8d0 70%,#b0ccc8 100%);
+  position:relative;overflow:hidden;
+}
+#voiceView::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8a84b' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.voice-icon-wrap{
+  width:90px;height:90px;border-radius:50%;
+  background:linear-gradient(135deg,#1a5f6a,#0d4a5a);
+  border:3px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-size:40px;position:relative;z-index:1;
+  box-shadow:0 0 30px rgba(26,95,95,0.3);
+}
+.voice-ch-name{font-size:22px;font-weight:800;color:#1a3a3a;position:relative;z-index:1}
+.voice-btns{display:flex;gap:12px;position:relative;z-index:1;flex-wrap:wrap;justify-content:center}
+.voice-join-btn{
+  padding:14px 36px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,#1a6060,#0d4545);
+  color:#fff;font-size:15px;font-weight:700;font-family:Tajawal,sans-serif;
+  cursor:pointer;transition:.2s;border:1px solid var(--gold);
+}
+.voice-join-btn:hover{background:linear-gradient(135deg,#226868,#165050);transform:translateY(-1px)}
+.voice-leave-btn{
+  padding:14px 36px;border-radius:14px;border:none;
+  background:rgba(192,64,64,0.15);
+  color:var(--red);font-size:15px;font-weight:700;font-family:Tajawal,sans-serif;
+  cursor:pointer;transition:.2s;border:1px solid rgba(192,64,64,0.3);
+}
+.voice-status{
+  background:rgba(255,255,255,0.65);backdrop-filter:blur(12px);
+  border:1px solid rgba(200,168,75,0.25);border-radius:16px;
+  padding:20px;max-width:480px;width:100%;position:relative;z-index:1;
+}
+.voice-users{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.voice-user{
+  display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:rgba(26,95,95,0.1);border-radius:10px;
+  border:1px solid rgba(200,168,75,0.15);
+}
+.voice-user-av{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#1a6060,#0d4545);
+  border:2px solid rgba(200,168,75,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;
+}
+.voice-user-name{flex:1;font-size:14px;font-weight:600;color:#1a3a3a}
+.voice-indicator{width:10px;height:10px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(0.8)}}
+.voice-log{
+  margin-top:12px;padding:10px 12px;background:rgba(0,0,0,0.05);
+  border-radius:8px;font-family:monospace;font-size:11px;
+  max-height:150px;overflow-y:auto;color:#5a7a72;
+}
+.mic-select-btn{
+  padding:10px 24px;border-radius:10px;border:1px solid rgba(200,168,75,0.3);
+  background:rgba(255,255,255,0.5);color:#4a7a7a;
+  font-size:13px;font-weight:600;font-family:Tajawal,sans-serif;
+  cursor:pointer;transition:.2s;
+}
+.mic-select-btn:hover{background:rgba(255,255,255,0.8)}
+
+/* ════ MODALS ════ */
+.modal-bg{
+  position:fixed;inset:0;z-index:1000;
+  background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;
+}
+.modal-bg.show{display:flex}
+.modal{
+  background:linear-gradient(160deg,#122530,#0d1e28);
+  border-radius:20px;padding:28px;width:460px;max-width:calc(100vw - 32px);
+  position:relative;border:1px solid var(--border2);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.modal::before{
+  content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:4px;color:var(--gold)}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.modal-inp{
+  width:100%;background:rgba(0,0,0,0.3);
+  border:1.5px solid var(--border2);border-radius:10px;
+  color:var(--text);font-family:Tajawal,sans-serif;font-size:14px;
+  padding:11px 14px;outline:none;margin-bottom:12px;
+}
+.modal-inp:focus{border-color:var(--gold);background:rgba(0,0,0,0.4)}
+.modal-btn{
+  width:100%;padding:12px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--teal),var(--acc));
+  color:#fff;font-size:14px;font-weight:700;font-family:Tajawal,sans-serif;
+  cursor:pointer;transition:.2s;
+}
+.modal-btn:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.modal-btn.secondary{
+  background:rgba(255,255,255,0.05);color:var(--text);
+  border:1px solid var(--border);margin-top:8px;
+}
+.modal-btn.secondary:hover{background:rgba(255,255,255,0.1);transform:none}
+.modal-btn.gold{
+  background:linear-gradient(135deg,#b8922a,var(--gold));
+  color:#0a1a10;
+}
+.modal-btn.danger{background:linear-gradient(135deg,#8a1a1a,var(--red))}
+.modal-close{
+  position:absolute;top:16px;left:16px;width:30px;height:30px;
+  border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+  cursor:pointer;color:var(--muted);font-size:16px;transition:.2s;
+}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--text)}
+
+/* ════ LOGIN ════ */
+#loginScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(160deg,#0a1f2f 0%,#06141e 50%,#0a1a28 100%);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+#loginScreen::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 30% 50%,rgba(26,95,95,0.2) 0%,transparent 60%),
+             radial-gradient(ellipse at 70% 20%,rgba(200,168,75,0.1) 0%,transparent 50%);
+}
+.login-card{
+  background:linear-gradient(160deg,#122530,#0d1e28);
+  border-radius:24px;padding:44px 36px;width:420px;max-width:calc(100vw - 32px);
+  text-align:center;border:1px solid var(--border2);
+  box-shadow:0 30px 80px rgba(0,0,0,0.6);position:relative;z-index:1;
+}
+.login-card::before{
+  content:'';position:absolute;top:0;left:15%;right:15%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.login-logo{
+  width:80px;height:80px;border-radius:22px;
+  background:linear-gradient(135deg,#1a6060,#0d4545);
+  border:2px solid var(--gold);margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  box-shadow:0 0 40px rgba(26,95,95,0.4);
+}
+.login-title{font-size:26px;font-weight:900;margin-bottom:6px;color:var(--gold)}
+.login-sub{font-size:14px;color:var(--muted);margin-bottom:30px}
+.google-btn{
+  width:100%;padding:14px;border-radius:12px;
+  border:1.5px solid var(--border2);background:rgba(255,255,255,.05);
+  color:var(--text);font-family:Tajawal,sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.google-btn:hover{background:rgba(255,255,255,.1);border-color:var(--gold)}
+
+/* ════ PROFILE MODAL ════ */
+.profile-info-box{
+  background:rgba(0,0,0,0.25);border-radius:12px;
+  padding:16px;margin-bottom:16px;border:1px solid var(--border);
+}
+.profile-code-row{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.2);
+  border-radius:8px;padding:8px 12px;margin-top:8px;
+}
+.profile-code-label{font-size:11px;color:var(--gold);font-weight:700}
+.profile-code-val{font-size:16px;font-weight:800;color:var(--gold2);font-family:monospace;letter-spacing:2px;flex:1}
+.profile-code-copy{
+  width:28px;height:28px;border-radius:6px;background:rgba(200,168,75,0.15);
+  border:1px solid rgba(200,168,75,0.3);color:var(--gold);
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.profile-code-copy:hover{background:rgba(200,168,75,0.3)}
+.admin-badge{
+  display:inline-block;background:linear-gradient(90deg,var(--gold),var(--gold2));
+  color:#0a1a10;font-size:10px;font-weight:800;
+  padding:2px 8px;border-radius:6px;margin-right:6px;
+}
+
+/* ════ TOAST ════ */
+#toastContainer{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  z-index:9990;display:flex;flex-direction:column;gap:8px;align-items:center;
+}
+.toast{
+  background:linear-gradient(135deg,#122530,#0d1e28);
+  border:1px solid var(--border2);border-radius:12px;
+  padding:10px 20px;font-size:13px;font-weight:600;
+  box-shadow:0 4px 20px rgba(0,0,0,0.4);white-space:nowrap;
+  animation:toastIn .3s,toastOut .3s 2.5s forwards;
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-8px)}}
+
+/* ════ APP LAYOUT ════ */
+#app{height:100vh;display:flex}
+
+/* ════ EMPTY CHANNEL SELECT ════ */
+.ch-empty-icon{
+  width:70px;height:70px;border-radius:20px;
+  background:linear-gradient(135deg,#1a5f6a,#0d4a5a);
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  margin:0 auto 12px;box-shadow:0 0 30px rgba(26,95,95,0.25);
+}
+
+/* ════ ROLE TAGS ════ */
+.role-owner{color:#d4af5a}
+.role-admin{color:#5ab4d4}
+.role-member{color:var(--muted)}
+
+/* Divider gold line */
+.gold-line{
+  width:80%;height:1px;margin:8px auto;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0.4;
+}
+
+/* ════ CHANNEL TYPE TABS ════ */
+.ch-type-tabs{display:flex;gap:8px;margin-bottom:14px}
+.ch-type-tab{
+  flex:1;padding:10px;border-radius:8px;border:1px solid var(--border);
+  background:rgba(0,0,0,0.2);color:var(--muted);
+  font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;
+  cursor:pointer;transition:.2s;text-align:center;
+}
+.ch-type-tab.active{
+  background:linear-gradient(135deg,var(--teal),var(--acc));
+  color:#fff;border-color:transparent;
+}
+
+/* ════ MOBILE PAGES & NAV — hidden on desktop ════ */
+.mob-page { display: none !important; }
+#mobileNav { display: none !important; }
+#mobileSvRow { display: none; }
+
+/* ════ MOBILE RESPONSIVE ════ */
+@media (max-width: 768px) {
+  body { overflow: hidden; height: 100dvh; }
+
+  /* ─── Show desktop app shell on mobile (no page switching) ─── */
+  #app {
+    display: flex !important;
+    height: 100dvh;
+  }
+
+  /* ─── Server list: fixed 65px strip on the RIGHT (RTL) ─── */
+  #serverList {
+    display: flex !important;
+    width: 65px !important;
+    min-width: 65px !important;
+    max-width: 65px !important;
+    position: fixed !important;
+    top: 0; right: 0; bottom: 0;
+    z-index: 300 !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg) !important;
+    border-left: 1px solid var(--border) !important;
+  }
+
+  /* ─── Channel Drawer: slides in from the right, next to server strip ─── */
+  #channelSidebar {
+    display: flex !important;
+    position: fixed !important;
+    top: 0; bottom: 0;
+    right: 65px;
+    width: 260px !important;
+    min-width: 260px !important;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    z-index: 190;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+  }
+  #channelSidebar.drawer-open {
+    transform: translateX(0);
+  }
+
+  /* Drawer overlay */
+  #drawerOverlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    right: 65px; /* don't cover server strip */
+    background: rgba(0,0,0,0.5);
+    z-index: 188;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  #drawerOverlay.show { display: block; }
+
+  /* ─── Main content: fills left of server strip ─── */
+  #mainContent {
+    display: flex !important;
+    margin-right: 65px;
+    width: calc(100% - 65px);
+    flex-direction: column;
+  }
+
+  /* ─── Header hamburger button ─── */
+  #mobHamburger {
+    display: flex !important;
+  }
+
+  /* ─── Hide old mobile pages and nav ─── */
+  .mob-page { display: none !important; }
+  #mobileNav { display: none !important; }
+  #mobileSvRow { display: none !important; }
+
+  /* ─── sv-item sizing for 65px strip ─── */
+  .sv-item {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 22px !important;
+    font-size: 18px !important;
+  }
+  .sv-item:hover, .sv-item.active {
+    border-radius: 14px !important;
+  }
+
+  /* ─── chat input on mobile ─── */
+  .chat-input-wrap {
+    padding: 6px 8px !important;
+    padding-bottom: env(safe-area-inset-bottom, 6px) !important;
+  }
+  .chat-input-top {
+    padding: 4px 6px 4px 4px !important;
+  }
+  .ci-btn.send {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+    margin-left: 2px !important;
+  }
+  .ci-btn {
+    width: 36px !important;
+    height: 36px !important;
+    flex-shrink: 0 !important;
+  }
+  #mediaPreviewArea {
+    max-height: 90px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  #homeView {
+    overflow: hidden !important;
+  }
+  #homeServersList {
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain;
+    padding-bottom: 40px !important;
+  }
+  /* contentArea must allow flex children to scroll */
+  #contentArea {
+    overflow: hidden !important;
+    flex: 1;
+  }
+  #mainContent {
+    overflow: hidden !important;
+  }
+  /* messagesArea scrollable */
+  #messagesArea {
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Fix all tappable elements on mobile */
+  button, .ch-item, .sv-item, [onclick] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Textarea keyboard fix */
+  .chat-inp, textarea {
+    font-size: 16px !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ LOGIN ════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🌍</div>
+    <div class="login-title">عوالم</div>
+    <div class="login-sub">منصة محادثات صوتية ونصية</div>
+    <button class="google-btn" onclick="signInGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+      دخول بـ Google
+    </button>
+  </div>
+</div>
+
+<!-- Drawer Overlay (mobile) -->
+<div id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+
+  <!-- Server List -->
+  <div id="serverList">
+    <div class="sv-item active" id="homeBtn" onclick="showHome()" title="الرئيسية">🌍</div>
+    <div class="sv-sep"></div>
+    <div id="svItems"></div>
+    <div class="sv-sep"></div>
+    <div class="sv-item sv-add" onclick="openCreateServer()" title="إنشاء سيرفر">+</div>
+    <div class="sv-item sv-add" onclick="openJoinServer()" title="انضمام برابط/كود">🔗</div>
+  </div>
+
+  <!-- Channel Sidebar -->
+  <div id="channelSidebar">
+    <!-- Mobile server pills -->
+    <div id="mobileSvRow">
+      <div class="mob-sv-pill" onclick="showHome()">🏠 الرئيسية</div>
+      <div id="mobSvPills" style="display:contents"></div>
+      <div class="mob-sv-pill mob-sv-pill-add" onclick="openCreateServer()">+ جديد</div>
+      <div class="mob-sv-pill mob-sv-pill-add" onclick="openJoinServer()">🔗 انضمام</div>
+    </div>
+    <div class="ch-header">
+      <div class="back-btn" onclick="showHome()" title="الرئيسية">◀</div>
+      <div class="ch-server-name" id="chServerName">الرئيسية</div>
+      <div class="ch-header-icons">
+        <div class="ch-header-icon" onclick="openServerSettings()" id="chSettingsBtn" style="display:none" title="إعدادات السيرفر">⚙️</div>
+      </div>
+    </div>
+    <div class="ch-list" id="channelList"></div>
+    <div class="voice-connected" id="voiceConnectedBar">
+      <div class="vc-info">🔊 <span id="vcChannelName"></span></div>
+      <div class="vc-btns">
+        <button class="vc-btn" id="vcMuteBtn" onclick="toggleMute()" title="كتم">🎤</button>
+        <button class="vc-btn" onclick="leaveVoice()" title="مغادرة">📵</button>
+      </div>
+    </div>
+    <div class="user-panel">
+      <div class="up-av" onclick="openProfile()" id="upAv">?</div>
+      <div class="up-info">
+        <div class="up-name" id="upName">—</div>
+        <div class="up-tag" id="upTag">#0000</div>
+      </div>
+      <div class="up-btns">
+        <button class="up-btn" onclick="openProfile()" title="الملف الشخصي">👤</button>
+        <button class="up-btn" onclick="openSettings()" title="الإعدادات">⚙️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent">
+    <div class="main-header">
+      <div id="mobHamburger" onclick="toggleDrawer()" title="القنوات">☰</div>
+      <div class="main-header-back" onclick="goBack()" title="رجوع">◀</div>
+      <div class="main-header-icon" id="mhIcon">#</div>
+      <div class="main-header-name" id="mhName">اختر قناة</div>
+    </div>
+
+    <div id="contentArea" style="flex:1;display:flex;overflow:hidden;position:relative">
+
+      <!-- Home View -->
+      <div id="homeView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative">
+        <div id="homeServersList" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px 80px;display:flex;flex-direction:column;gap:12px">
+          <!-- Servers rendered here -->
+        </div>
+        <div id="homeEmpty" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:30px">
+          <div style="font-size:60px">🌍</div>
+          <div style="font-size:24px;font-weight:800;color:var(--gold)">عوالم</div>
+          <div style="font-size:15px;color:var(--muted);text-align:center">لا يوجد سيرفرات بعد</div>
+          <button class="voice-join-btn" onclick="openCreateServer()" style="margin-top:8px;font-size:16px;padding:14px 28px">+ إنشاء سيرفر</button>
+          <button class="mic-select-btn" onclick="openJoinServer()" style="font-size:15px;padding:12px 24px">🔗 انضمام برابط</button>
+        </div>
+      </div>
+
+      <!-- Messages View -->
+      <div id="messagesView" style="flex:1;display:none;flex-direction:column;overflow:hidden">
+        <div id="messagesArea"></div>
+        <div class="chat-input-wrap">
+          <div class="chat-input-box">
+            <div id="mediaPreviewArea"></div>
+            <div class="chat-input-top">
+              <button class="ci-btn" type="button" onclick="document.getElementById('mediaFileInp').click()" title="إرفاق صورة أو فيديو">📎</button>
+              <input type="file" id="mediaFileInp" accept="image/*,video/*" multiple style="display:none" onchange="handleMediaSelect(this)">
+              <textarea class="chat-inp" id="mainChatInp" placeholder="اكتب رسالة..." rows="1" inputmode="text" autocomplete="off"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+                oninput="this.style.height='';this.style.height=Math.min(this.scrollHeight,140)+'px';document.getElementById('sendBtn').classList.toggle('active',!!(this.value.trim()||(window._pendingMedia&&window._pendingMedia.length)))"
+                style="font-size:16px!important"></textarea>
+              <button class="ci-btn send" id="sendBtn" type="button" onclick="sendMessage()" title="إرسال">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Voice View -->
+      <div id="voiceView" style="flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:40px;background:linear-gradient(135deg,#e8dcc8,#c8d8d0);position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:url('data:image/svg+xml,%3Csvg width=60 height=60 viewBox=0 0 60 60 xmlns=http://www.w3.org/2000/svg%3E%3Cg fill=none%3E%3Cg fill=%23c8a84b fill-opacity=.05%3E%3Cpath d=M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');z-index:0"></div>
+        <div class="voice-icon-wrap">🎙️</div>
+        <div class="voice-ch-name" id="voiceViewName"></div>
+        <div class="voice-btns">
+          <button class="voice-join-btn" id="voiceJoinBtn" onclick="joinVoice()">🔊 انضمام للقناة</button>
+          <button class="mic-select-btn" id="micSelectBtn" onclick="selectMicrophone()">🎤 اختيار الميكروفون</button>
+          <button class="voice-leave-btn" style="display:none" id="voiceLeaveBtn" onclick="leaveVoice()">📵 مغادرة</button>
+        </div>
+        <div class="voice-status">
+          <div style="font-weight:700;font-size:14px;color:#1a3a3a">👥 المستخدمون في القناة</div>
+          <div class="voice-users" id="voiceUsersList"></div>
+          <div class="voice-log" id="voiceLog">جاهز...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<div class="modal-bg" id="createServerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('createServerModal')">✕</button>
+    <div class="modal-title">سيرفر جديد</div>
+    <div class="modal-sub">أنشئ مجتمعك الخاص</div>
+    <input class="modal-inp" id="svNameInp" placeholder="اسم السيرفر">
+    <button class="modal-btn" onclick="createServer()">إنشاء</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="joinServerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('joinServerModal')">✕</button>
+    <div class="modal-title">انضم لسيرفر</div>
+    <div class="modal-sub">أدخل كود الدعوة أو رابط الانضمام</div>
+    <input class="modal-inp" id="joinCodeInp" placeholder="كود الدعوة أو رابط الانضمام">
+    <button class="modal-btn" onclick="joinServer()">انضمام</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="serverSettingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('serverSettingsModal')">✕</button>
+    <div class="modal-title" id="svSettingsTitle">إعدادات السيرفر</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      <button class="modal-btn" onclick="openAddChannel()" id="svSettingsAddCh">➕ إضافة قناة</button>
+      <button class="modal-btn secondary" onclick="openInvite()" id="svSettingsInvite">🔗 رابط الدعوة</button>
+      <div style="height:1px;background:var(--border);margin:4px 0"></div>
+      <button class="modal-btn secondary" id="svLeaveBtn" onclick="confirmLeaveServer()" style="color:#e06060;border-color:rgba(192,64,64,0.3)">🚪 مغادرة السيرفر</button>
+      <button class="modal-btn danger" id="svDeleteBtn" onclick="confirmDeleteServer()" style="display:none">🗑️ حذف السيرفر</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="confirmLeaveModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('confirmLeaveModal')">✕</button>
+    <div class="modal-title" style="color:#e06060">🚪 مغادرة السيرفر</div>
+    <div class="modal-sub" id="confirmLeaveText">هل أنت متأكد أنك تريد مغادرة هذا السيرفر؟</div>
+    <button class="modal-btn danger" onclick="doLeaveServer()">نعم، مغادرة</button>
+    <button class="modal-btn secondary" onclick="closeModal('confirmLeaveModal')">إلغاء</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="confirmDeleteModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('confirmDeleteModal')">✕</button>
+    <div class="modal-title" style="color:#e06060">🗑️ حذف السيرفر</div>
+    <div class="modal-sub" id="confirmDeleteText">سيُحذف السيرفر نهائياً لجميع الأعضاء. هذا الإجراء لا يمكن التراجع عنه.</div>
+    <button class="modal-btn danger" onclick="doDeleteServer()">نعم، احذف</button>
+    <button class="modal-btn secondary" onclick="closeModal('confirmDeleteModal')">إلغاء</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="addChannelModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addChannelModal')">✕</button>
+    <div class="modal-title">قناة جديدة</div>
+    <div class="ch-type-tabs">
+      <div class="ch-type-tab active" id="chTypeText" onclick="selectChType('text')">💬 نصية</div>
+      <div class="ch-type-tab" id="chTypeVoice" onclick="selectChType('voice')">🔊 صوتية</div>
+    </div>
+    <input class="modal-inp" id="chNameInp" placeholder="اسم القناة">
+    <button class="modal-btn" onclick="addChannel()">إضافة</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="inviteModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('inviteModal')">✕</button>
+    <div class="modal-title">دعوة أعضاء</div>
+    <div class="modal-sub">شارك هذا الرابط أو الكود للانضمام</div>
+    <div style="background:rgba(0,0,0,0.25);border-radius:10px;padding:12px;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--gold);font-weight:700;margin-bottom:6px">🔗 رابط الانضمام</div>
+      <div style="font-family:monospace;font-size:12px;word-break:break-all;color:var(--text)" id="inviteLink"></div>
+    </div>
+    <div class="profile-code-row" style="margin-bottom:12px">
+      <div>
+        <div class="profile-code-label">كود الدعوة</div>
+        <div class="profile-code-val" id="inviteCodeDisplay">—</div>
+      </div>
+      <button class="profile-code-copy" onclick="copyCode()" title="نسخ الكود">📋</button>
+    </div>
+    <button class="modal-btn" onclick="copyInvite()">📋 نسخ الرابط</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    <div class="modal-title">إعدادات الحساب</div>
+    <input class="modal-inp" id="displayNameInp" placeholder="اسم العرض">
+    <button class="modal-btn" onclick="saveSettings()">💾 حفظ</button>
+    <button class="modal-btn secondary" onclick="doSignOut()">🚪 خروج</button>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div class="modal-bg" id="profileModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+    <div class="modal-title">الملف الشخصي</div>
+    <div class="profile-info-box">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div style="position:relative;width:52px;height:52px;cursor:pointer" onclick="document.getElementById('avatarUpload').click()" title="اضغط لتغيير الصورة">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#1a6060,#0d4545);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;overflow:hidden" id="profileAvatar">?</div>
+          <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px">📷</div>
+        </div>
+        <input type="file" id="avatarUpload" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
+        <div>
+          <div style="font-size:16px;font-weight:800;color:var(--text)" id="profileName">—</div>
+          <div style="font-size:12px;color:var(--muted)" id="profileTag">#0000</div>
+          <div id="profileRoleBadge"></div>
+        </div>
+      </div>
+      <div class="gold-line"></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;margin-top:8px">كود الانضمام الخاص بك (للمشرفين)</div>
+      <div class="profile-code-row">
+        <div>
+          <div class="profile-code-label">كود المشرف</div>
+          <div class="profile-code-val" id="profileAdminCode">—</div>
+        </div>
+        <button class="profile-code-copy" onclick="copyAdminCode()" title="نسخ الكود">📋</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5">
+        📌 شارك هذا الكود مع الآخرين ليتمكنوا من إضافتك كصديق أو الانضمام عبرك
+      </div>
+    </div>
+    <button class="modal-btn secondary" onclick="closeModal('profileModal');openSettings()">⚙️ تعديل الحساب</button>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+
+<script>
+'use strict';
+
+const FB = firebase.initializeApp({
+  apiKey: "AIzaSyCmZPRoEt3IDFxeH-aqvYQIi5dGOmFlS5Y",
+  authDomain: "awalim2-5bdb1.firebaseapp.com",
+  databaseURL: "https://awalim2-5bdb1-default-rtdb.firebaseio.com",
+  projectId: "awalim2-5bdb1"
+});
+
+const auth = FB.auth();
+const db = FB.database();
+const AGORA_APP_ID = '3a810a3ea5a24451ab56a6b7429c929c';
+
+// ⚠️ Token مؤقت صالح 24 ساعة - يحتاج تجديد يومياً من console.agora.io
+// لتجديده: Configure > Generate Temp Token > انسخه هنا
+// Token Server URL - يولد توكن تلقائياً بدون انتهاء يومي
+const TOKEN_SERVER_URL = 'https://agora-token-server-kdd2.onrender.com';
+
+// إبقاء السيرفر مستيقظاً - ping كل 10 دقائق
+setInterval(() => {
+  fetch(TOKEN_SERVER_URL + '/').catch(() => {});
+}, 10 * 60 * 1000);
+
+async function getAgoraToken(channelName, uid) {
+  try {
+    const res = await fetch(`${TOKEN_SERVER_URL}/token?channel=${channelName}&uid=${uid}`);
+    const data = await res.json();
+    return data.token;
+  } catch(e) {
+    console.error('Token fetch failed:', e);
+    return null;
+  }
+}
+
+let currentUser = null;
+let userProfile = {};
+let servers = {};
+let currentServer = null;
+let currentChannel = null;
+let voiceChannel = null;
+let agoraClient = null;
+let localAudioTrack = null;
+let isMuted = false;
+let selectedMicDeviceId = null;
+let messagesListener = null;
+
+// ════ AUTH ════
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    loadUserProfile().then(() => {
+      document.getElementById('loginScreen').style.display = 'none';
+      // Show app on both mobile and desktop
+      const app = document.getElementById('app');
+      if (app) { app.style.display = 'flex'; }
+      initApp();
+    });
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    const app = document.getElementById('app');
+    if (app) app.style.display = 'none';
+  }
+});
+
+async function signInGoogle() {
+  try {
+    await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  } catch(e) {
+    toast('❌ فشل تسجيل الدخول');
+  }
+}
+
+async function loadUserProfile() {
+  const snap = await db.ref('users/' + currentUser.uid).once('value');
+  userProfile = snap.val() || {};
+  if (!userProfile.displayName) {
+    userProfile.displayName = currentUser.displayName || 'مستخدم';
+    userProfile.tag = String(Math.floor(1000 + Math.random() * 9000));
+    userProfile.adminCode = generateAdminCode();
+    await db.ref('users/' + currentUser.uid).update(userProfile);
+  }
+  if (!userProfile.adminCode) {
+    userProfile.adminCode = generateAdminCode();
+    await db.ref('users/' + currentUser.uid + '/adminCode').set(userProfile.adminCode);
+  }
+  updateUserPanel();
+}
+
+function generateAdminCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0; i<8; i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function updateUserPanel() {
+  document.getElementById('upAv').textContent = (userProfile.displayName||'?')[0];
+  document.getElementById('upName').textContent = userProfile.displayName || '—';
+  document.getElementById('upTag').textContent = '#' + (userProfile.tag || '0000');
+  const dni = document.getElementById('displayNameInp');
+  if (dni) dni.value = userProfile.displayName || '';
+}
+
+function initApp() {
+  listenServers();
+  if (currentUser) {
+    const presRef = db.ref('presence/' + currentUser.uid);
+    presRef.set({ online: true });
+    presRef.onDisconnect().update({ online: false });
+  }
+  agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  log('✅ Agora initialized');
+
+  // Check URL for invite code - auto join without popup
+  const params = new URLSearchParams(location.search);
+  const joinCode = params.get('join');
+  if (joinCode) {
+    setTimeout(async () => {
+      const code = joinCode.toUpperCase();
+      const snap = await db.ref('servers').orderByChild('inviteCode').equalTo(code).once('value');
+      if (!snap.exists()) return;
+      const sid = Object.keys(snap.val())[0];
+      if (servers[sid]) { selectServer(sid); return; }
+      await db.ref('servers/' + sid + '/members/' + currentUser.uid).set({ role: 'member' });
+      await db.ref('users/' + currentUser.uid + '/servers/' + sid).set(true);
+      servers[sid] = snap.val()[sid];
+      renderServerList();
+      selectServer(sid);
+      toast('✅ انضممت للسيرفر!');
+      // Clean URL
+      history.replaceState({}, '', location.pathname);
+    }, 1500);
+  }
+}
+
+function log(msg) {
+  console.log(msg);
+  const el = document.getElementById('voiceLog');
+  if (el) { el.textContent += msg + '\n'; el.scrollTop = el.scrollHeight; }
+}
+
+// ════ NAVIGATION ════
+function goBack() {
+  if (currentChannel) {
+    currentChannel = null;
+    if (currentServer) {
+      renderChannels(currentServer);
+      showView('none');
+      document.getElementById('mhName').textContent = servers[currentServer]?.name || 'اختر قناة';
+      document.getElementById('mhIcon').textContent = '#';
+    } else {
+      showHome();
+    }
+  } else if (currentServer) {
+    showHome();
+  } else {
+    showHome();
+  }
+}
+
+// ════ SERVERS ════
+function listenServers() {
+  if (!currentUser) return;
+  db.ref('users/' + currentUser.uid + '/servers').on('value', snap => {
+    const sids = snap.val() || {};
+    // Reset servers to avoid stale/duplicated entries
+    servers = {};
+    Promise.all(Object.keys(sids).map(sid =>
+      db.ref('servers/' + sid).once('value').then(s => {
+        if (s.val()) servers[sid] = s.val();
+      })
+    )).then(() => {
+      renderServerList();
+      if (!window._loaded) {
+        window._loaded = true;
+        setTimeout(restoreLastServer, 500);
+      }
+    });
+  });
+}
+
+function renderServerList() {
+  renderHomeServers();
+  const container = document.getElementById('svItems');
+  container.innerHTML = '';
+  const seen = new Set();
+  Object.entries(servers).forEach(([sid, sv]) => {
+    if (seen.has(sid)) return;
+    seen.add(sid);
+
+    const div = document.createElement('div');
+    div.className = 'sv-item' + (currentServer === sid ? ' active' : '');
+    div.style.cssText = 'cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;position:relative';
+    if (sv.avatarUrl) {
+      div.innerHTML = `<img src="${sv.avatarUrl}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover">`;
+    } else {
+      div.textContent = sv.emoji || sv.name?.[0] || '?';
+    }
+    div.title = sv.name || '';
+
+    // Single click / tap → open server directly
+    div.addEventListener('click', (e) => {
+      e.stopPropagation();
+      selectServer(sid);
+    });
+
+    // Right-click on DESKTOP → show inline context tooltip
+    div.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      showSvCtx(sid, sv, div);
+    });
+
+    // Long-press on MOBILE → show context
+    let lpTimer;
+    div.addEventListener('touchstart', () => {
+      lpTimer = setTimeout(() => showSvCtx(sid, sv, div), 600);
+    }, {passive:true});
+    div.addEventListener('touchend', () => clearTimeout(lpTimer), {passive:true});
+    div.addEventListener('touchmove', () => clearTimeout(lpTimer), {passive:true});
+
+    container.appendChild(div);
+  });
+  document.getElementById('homeBtn').classList.toggle('active', !currentServer);
+}
+
+// Floating context menu for server icons
+function showSvCtx(sid, sv, anchorEl) {
+  // Remove any existing
+  const old = document.getElementById('svCtxPopup');
+  if (old) old.remove();
+
+  const isOwner = sv.ownerId === currentUser?.uid || sv.members?.[currentUser?.uid]?.role === 'owner';
+  const popup = document.createElement('div');
+  popup.id = 'svCtxPopup';
+  popup.style.cssText = `
+    position:fixed;z-index:9000;
+    background:linear-gradient(160deg,#122530,#0d1e28);
+    border:1px solid var(--border2);border-radius:12px;
+    padding:6px;min-width:160px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6);
+    font-family:Tajawal,sans-serif;
+  `;
+
+  // Position smartly: start to the left of anchor, then clamp within viewport
+  document.body.appendChild(popup);
+  const rect = anchorEl.getBoundingClientRect();
+  const pw = popup.offsetWidth || 170;
+  const ph = popup.offsetHeight || 150;
+  let top = rect.top;
+  let right = window.innerWidth - rect.left + 6;
+  // Clamp top so popup doesn't go off bottom
+  if (top + ph > window.innerHeight - 10) top = window.innerHeight - ph - 10;
+  if (top < 8) top = 8;
+  // Clamp right so popup doesn't go off left edge
+  if (window.innerWidth - right - pw < 8) right = window.innerWidth - pw - 8;
+  popup.style.top = top + 'px';
+  popup.style.right = right + 'px';
+
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:11px;color:var(--gold);padding:6px 12px 8px;font-weight:800;border-bottom:1px solid rgba(180,150,80,0.2);margin-bottom:4px;white-space:nowrap';
+  label.textContent = (sv.emoji||'🌍') + ' ' + (sv.name||'');
+  popup.appendChild(label);
+
+  const mkBtn = (icon, text, danger, fn) => {
+    const b = document.createElement('button');
+    b.style.cssText = `display:block;width:100%;padding:9px 14px;background:transparent;border:none;
+      color:${danger?'#e06060':'var(--text)'};font-family:Tajawal,sans-serif;font-size:14px;font-weight:600;
+      cursor:pointer;text-align:right;border-radius:8px;-webkit-tap-highlight-color:transparent;touch-action:manipulation`;
+    b.textContent = icon + ' ' + text;
+    b.addEventListener('mouseenter', () => b.style.background = 'rgba(255,255,255,0.07)');
+    b.addEventListener('mouseleave', () => b.style.background = 'transparent');
+    b.addEventListener('click', (e) => { e.stopPropagation(); popup.remove(); fn(); });
+    return b;
+  };
+
+  popup.appendChild(mkBtn('💬', 'فتح', false, () => selectServer(sid)));
+  popup.appendChild(mkBtn('⚙️', 'الإعدادات', false, () => { selectServer(sid); openServerSettings(); }));
+  if (isOwner) {
+    popup.appendChild(mkBtn('🗑️', 'حذف السيرفر', true, () => { currentServer = sid; confirmDeleteServer(); }));
+  } else {
+    popup.appendChild(mkBtn('🚪', 'مغادرة', true, () => { currentServer = sid; confirmLeaveServer(); }));
+  }
+
+  // Close on any outside click
+  const close = (e) => { if (!popup.contains(e.target)) { popup.remove(); document.removeEventListener('click', close, true); } };
+  setTimeout(() => document.addEventListener('click', close, true), 50);
+}
+
+function closeAllCtx() {
+  const p = document.getElementById('svCtxPopup');
+  if (p) p.remove();
+}
+
+async function createServer() {
+  const name = document.getElementById('svNameInp').value.trim();
+  if (!name) return;
+  const inviteCode = Math.random().toString(36).substr(2,8).toUpperCase();
+  const sid = 'sv_' + Date.now();
+  const sv = {
+    name, emoji: '🌍', inviteCode,
+    ownerId: currentUser.uid,
+    members: { [currentUser.uid]: { role: 'owner' } },
+    channels: {
+      ['ch_' + Date.now()]: { name: 'عام', type: 'text', position: 0 },
+      ['ch_' + (Date.now()+1)]: { name: 'صوتي عام', type: 'voice', position: 1 }
+    }
+  };
+  await db.ref('servers/' + sid).set(sv);
+  await db.ref('users/' + currentUser.uid + '/servers/' + sid).set(true);
+  servers[sid] = sv;
+  document.getElementById('svNameInp').value = '';
+  closeModal('createServerModal');
+  renderServerList();
+  selectServer(sid);
+  toast('✅ تم إنشاء السيرفر');
+}
+
+async function joinServer() {
+  let input = document.getElementById('joinCodeInp').value.trim();
+  if (!input) return;
+  
+  // Extract code from URL if pasted as link
+  let code = input;
+  if (input.includes('?join=')) {
+    code = input.split('?join=').pop().toUpperCase();
+  } else {
+    code = input.toUpperCase();
+  }
+  
+  const snap = await db.ref('servers').orderByChild('inviteCode').equalTo(code).once('value');
+  if (!snap.exists()) { toast('❌ كود خاطئ'); return; }
+  const sid = Object.keys(snap.val())[0];
+  if (servers[sid]) { toast('⚠️ أنت بالفعل في هذا السيرفر'); closeModal('joinServerModal'); selectServer(sid); return; }
+  await db.ref('servers/' + sid + '/members/' + currentUser.uid).set({ role: 'member' });
+  await db.ref('users/' + currentUser.uid + '/servers/' + sid).set(true);
+  servers[sid] = snap.val()[sid];
+  document.getElementById('joinCodeInp').value = '';
+  closeModal('joinServerModal');
+  renderServerList();
+  selectServer(sid);
+  toast('✅ انضممت للسيرفر!');
+}
+
+function selectServer(sid) {
+  cleanupMessagesListener();
+  cleanupVoiceListener();
+  currentServer = sid;
+  currentChannel = null;
+  localStorage.setItem('awalem_lastServer', sid);
+  renderServerList();
+  renderChannels(sid);
+  showView('none');
+  document.getElementById('chSettingsBtn').style.display = '';
+  if (isMobile()) openDrawer();
+}
+
+function showHome() {
+  cleanupMessagesListener();
+  cleanupVoiceListener();
+  currentServer = null;
+  currentChannel = null;
+  renderServerList();
+  document.getElementById('chServerName').textContent = 'الرئيسية';
+  document.getElementById('chSettingsBtn').style.display = 'none';
+  document.getElementById('channelList').innerHTML = '';
+  document.getElementById('mhName').textContent = 'الرئيسية';
+  document.getElementById('mhIcon').textContent = '🏠';
+  showView('home');
+  renderHomeServers();
+}
+
+function renderHomeServers() {
+  const container = document.getElementById('homeServersList');
+  const empty = document.getElementById('homeEmpty');
+  if (!container) return;
+  const svList = Object.entries(servers);
+  if (svList.length === 0) {
+    container.style.display = 'none';
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  container.style.display = 'flex';
+  container.innerHTML = '';
+
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'font-size:13px;color:var(--gold);font-weight:800;padding:0 4px 4px';
+  hdr.textContent = 'سيرفراتك';
+  container.appendChild(hdr);
+
+  svList.forEach(([sid, sv]) => {
+    const chs = sv.channels || {};
+    const sorted = Object.entries(chs).sort((a,b)=>(a[1].position||0)-(b[1].position||0));
+    const isOwner = sv.ownerId === currentUser?.uid || sv.members?.[currentUser?.uid]?.role === 'owner';
+
+    const card = document.createElement('div');
+    card.style.cssText = 'background:rgba(26,95,95,0.15);border:1.5px solid rgba(180,150,80,0.25);border-radius:14px;margin-bottom:2px';
+
+    // ── Card Header ──
+    const cardHead = document.createElement('div');
+    cardHead.style.cssText = 'padding:14px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);border-radius:13px 13px 0 0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none';
+
+    const avatar = document.createElement('div');
+    avatar.style.cssText = 'width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1a6060,#0d4545);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0';
+    avatar.textContent = sv.emoji || '🌍';
+
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0';
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-size:17px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+    nameDiv.textContent = sv.name || 'سيرفر';
+    const countDiv = document.createElement('div');
+    countDiv.style.cssText = 'font-size:12px;color:var(--muted)';
+    countDiv.textContent = sorted.length + ' قناة';
+    info.appendChild(nameDiv);
+    info.appendChild(countDiv);
+
+    const arrow = document.createElement('div');
+    arrow.style.cssText = 'color:var(--gold);font-size:18px;padding:4px';
+    arrow.textContent = '◁';
+
+    cardHead.appendChild(avatar);
+    cardHead.appendChild(info);
+    cardHead.appendChild(arrow);
+    cardHead.addEventListener('click', () => selectServer(sid));
+
+    // ── Channel Rows ──
+    const chBody = document.createElement('div');
+    chBody.style.cssText = 'padding:8px 10px;display:flex;flex-direction:column;gap:4px';
+    sorted.slice(0, 5).forEach(([cid, ch]) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.04);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none';
+      const icon = document.createElement('span');
+      icon.style.cssText = 'font-size:16px;color:var(--muted)';
+      icon.textContent = ch.type === 'voice' ? '🔊' : '#';
+      const label = document.createElement('span');
+      label.style.cssText = 'font-size:15px;font-weight:600;color:var(--text)';
+      label.textContent = ch.name;
+      row.appendChild(icon);
+      row.appendChild(label);
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectChannel(sid, cid, ch);
+        if (isMobile()) closeDrawer();
+      });
+      chBody.appendChild(row);
+    });
+
+    // ── Action Buttons ──
+    const actions = document.createElement('div');
+    actions.style.cssText = 'padding:8px 10px 12px;display:flex;gap:8px';
+
+    const makeActionBtn = (text, bgColor, borderColor, onClick) => {
+      const b = document.createElement('button');
+      b.style.cssText = `flex:1;padding:10px;background:${bgColor};color:#e06060;border:1px solid ${borderColor};border-radius:9px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none`;
+      b.textContent = text;
+      b.type = 'button';
+      b.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); onClick(); });
+      b.addEventListener('touchend', (e) => { e.stopPropagation(); });
+      return b;
+    };
+
+    if (isOwner) {
+      actions.appendChild(makeActionBtn('🗑️ حذف السيرفر', 'rgba(192,64,64,0.12)', 'rgba(192,64,64,0.3)', () => {
+        currentServer = sid;
+        confirmDeleteServer();
+      }));
+    } else {
+      actions.appendChild(makeActionBtn('🚪 مغادرة', 'rgba(192,64,64,0.08)', 'rgba(192,64,64,0.25)', () => {
+        currentServer = sid;
+        confirmLeaveServer();
+      }));
+    }
+
+    card.appendChild(cardHead);
+    card.appendChild(chBody);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+
+  // ── Bottom Buttons ──
+  const btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:10px;margin-top:6px;padding-bottom:8px';
+
+  const btnCreate = document.createElement('button');
+  btnCreate.type = 'button';
+  btnCreate.style.cssText = 'flex:1;padding:13px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-family:Tajawal,sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation';
+  btnCreate.textContent = '+ إنشاء سيرفر';
+  btnCreate.addEventListener('click', () => openCreateServer());
+
+  const btnJoin = document.createElement('button');
+  btnJoin.type = 'button';
+  btnJoin.style.cssText = 'flex:1;padding:13px;background:rgba(26,95,95,0.25);color:var(--gold);border:1.5px solid rgba(180,150,80,0.4);border-radius:10px;font-family:Tajawal,sans-serif;font-size:15px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation';
+  btnJoin.textContent = '🔗 انضمام';
+  btnJoin.addEventListener('click', () => openJoinServer());
+
+  btns.appendChild(btnCreate);
+  btns.appendChild(btnJoin);
+  container.appendChild(btns);
+}
+
+function renderChannels(sid) {
+  const sv = servers[sid];
+  if (!sv) return;
+  document.getElementById('chServerName').textContent = (sv.emoji||'') + ' ' + sv.name;
+  const list = document.getElementById('channelList');
+  list.innerHTML = '';
+  const chs = sv.channels || {};
+  const sorted = Object.entries(chs).sort((a,b)=>(a[1].position||0)-(b[1].position||0));
+  const texts = sorted.filter(([,c])=>c.type==='text');
+  const voices = sorted.filter(([,c])=>c.type==='voice');
+
+  if (texts.length) {
+    const sec = document.createElement('div');
+    sec.className = 'ch-section-title';
+    sec.textContent = 'القنوات النصية';
+    list.appendChild(sec);
+    texts.forEach(([cid, ch]) => {
+      const el = document.createElement('div');
+      el.className = 'ch-item' + (currentChannel===cid?' active':'');
+      el.innerHTML = `<span class="ch-item-icon">#</span><span class="ch-item-name">${ch.name}</span>`;
+      el.onclick = () => { selectChannel(sid, cid, ch); if(isMobile()) closeDrawer(); };
+      list.appendChild(el);
+    });
+  }
+
+  if (voices.length) {
+    const sec = document.createElement('div');
+    sec.className = 'ch-section-title';
+    sec.textContent = 'القنوات الصوتية';
+    list.appendChild(sec);
+    voices.forEach(([cid, ch]) => {
+      const el = document.createElement('div');
+      el.className = 'ch-item' + (currentChannel===cid?' active':'');
+      el.innerHTML = `<span class="ch-item-icon">🔊</span><span class="ch-item-name">${ch.name}</span>`;
+      el.onclick = () => { selectChannel(sid, cid, ch); if(isMobile()) closeDrawer(); };
+      list.appendChild(el);
+    });
+  }
+}
+
+// ════ MOBILE NAVIGATION - CLEAN ════
+function isMobile() { return window.innerWidth <= 768; }
+
+// ════ VIEW MANAGEMENT ════
+function showView(name) {
+  const home = document.getElementById('homeView');
+  const msgs = document.getElementById('messagesView');
+  const voice = document.getElementById('voiceView');
+  if (home) { home.style.display = name === 'home' ? 'flex' : 'none'; }
+  if (msgs) { msgs.style.display = name === 'messages' ? 'flex' : 'none'; msgs.style.flexDirection = 'column'; msgs.style.overflow = 'hidden'; }
+  if (voice) { voice.style.display = name === 'voice' ? 'flex' : 'none'; }
+}
+
+function selectChannel(sid, cid, ch) {
+  currentServer = sid;
+  currentChannel = cid;
+  renderChannels(sid);
+  // Update header
+  const icon = document.getElementById('mhIcon');
+  const name = document.getElementById('mhName');
+  if (icon) icon.textContent = ch.type === 'voice' ? '🔊' : '#';
+  if (name) name.textContent = ch.name;
+  if (ch.type === 'voice') {
+    showVoiceChannel(sid, cid, ch);
+  } else {
+    showMessages(sid, cid);
+  }
+}
+
+// ════ DRAWER (Channel Sidebar) ════
+function toggleDrawer() {
+  const sidebar = document.getElementById('channelSidebar');
+  const overlay = document.getElementById('drawerOverlay');
+  if (!sidebar) return;
+  const isOpen = sidebar.classList.contains('drawer-open');
+  if (isOpen) closeDrawer();
+  else openDrawer();
+}
+
+function openDrawer() {
+  const sidebar = document.getElementById('channelSidebar');
+  const overlay = document.getElementById('drawerOverlay');
+  if (sidebar) sidebar.classList.add('drawer-open');
+  if (overlay) overlay.classList.add('show');
+}
+
+function closeDrawer() {
+  const sidebar = document.getElementById('channelSidebar');
+  const overlay = document.getElementById('drawerOverlay');
+  if (sidebar) sidebar.classList.remove('drawer-open');
+  if (overlay) overlay.classList.remove('show');
+}
+
+// Touch swipe to open/close drawer from right edge
+(function initTouchGestures() {
+  let touchStartX = 0, touchStartY = 0;
+  const EDGE_THRESHOLD = 30; // px from right edge to trigger open
+  const SWIPE_THRESHOLD = 50; // min swipe distance
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!isMobile()) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dy) > Math.abs(dx)) return; // vertical scroll, ignore
+
+    const sidebar = document.getElementById('channelSidebar');
+    const isOpen = sidebar && sidebar.classList.contains('drawer-open');
+    const screenW = window.innerWidth;
+
+    // Swipe LEFT (from right edge) → open drawer
+    if (!isOpen && dx < -SWIPE_THRESHOLD && touchStartX > screenW - 65 - EDGE_THRESHOLD) {
+      openDrawer();
+    }
+    // Swipe RIGHT → close drawer
+    if (isOpen && dx > SWIPE_THRESHOLD) {
+      closeDrawer();
+    }
+  }, { passive: true });
+})();
+
+// ════ LISTENER CLEANUP HELPERS ════
+let voiceDbListener = null;
+
+function cleanupMessagesListener() {
+  if (messagesListener) {
+    db.ref(messagesListener.path).off('child_added', messagesListener.fn);
+    messagesListener = null;
+  }
+}
+
+function cleanupVoiceListener() {
+  if (voiceDbListener) {
+    db.ref(voiceDbListener).off('value');
+    voiceDbListener = null;
+  }
+}
+
+// ════ LEGACY MOBILE STUBS (no-ops — UI now uses drawer system) ════
+function mobGoto() {}
+function mobSetActive() {}
+function mobShowServers() { closeDrawer(); showHome(); }
+function mobShowChannels() { if (currentServer) openDrawer(); }
+function mobShowChat() { closeDrawer(); }
+function renderMobServers() {}
+function mobSelectServer(sid) { selectServer(sid); }
+function renderMobChannels() {}
+function mobOpenChannel(sid, cid, ch) { selectChannel(sid, cid, ch); closeDrawer(); }
+function mobSendMsg() { sendMessage(); }
+function mobOpenSvSettings() { if (currentServer) openServerSettings(); }
+function renderMobSvPills() {}
+
+
+function showMessages(sid, cid) {
+  showView('messages');
+  const area = document.getElementById('messagesArea');
+  area.innerHTML = '';
+  if (messagesListener) {
+    db.ref(messagesListener.path).off('child_added', messagesListener.fn);
+  }
+  const path = 'messages/' + sid + '/' + cid;
+  const fn = snap => {
+    const msg = snap.val();
+    if (!msg) return;
+    const isAdmin = msg.role === 'owner' || msg.role === 'admin';
+
+    const div = document.createElement('div');
+    div.className = 'msg-group';
+
+    const av = document.createElement('div');
+    av.className = 'msg-av';
+    av.textContent = (msg.name||'?')[0];
+
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+
+    const meta = document.createElement('div');
+    meta.className = 'msg-meta';
+    meta.innerHTML = `<span class="msg-name">${escHtml(msg.name||'')}</span>${isAdmin?'<span class="msg-admin-badge">مشرف</span>':''}<span class="msg-time">${formatTime(msg.ts)}</span>`;
+
+    body.appendChild(meta);
+
+    if (msg.text) {
+      const txt = document.createElement('div');
+      txt.className = 'msg-content';
+      txt.textContent = msg.text;
+      body.appendChild(txt);
+    }
+
+    if (msg.mediaUrl) {
+      const mediaWrap = document.createElement('div');
+      mediaWrap.style.cssText = 'margin-top:4px;display:inline-flex;flex-direction:column;gap:0;align-items:flex-start';
+
+      if (msg.mediaType === 'video') {
+        const vid = document.createElement('video');
+        vid.src = msg.mediaUrl;
+        vid.controls = true;
+        vid.style.cssText = 'max-width:260px;max-height:200px;border-radius:10px;display:block;cursor:pointer';
+        vid.addEventListener('click', (e) => { e.preventDefault(); openLightbox(msg.mediaUrl, 'video', msg.mediaName); });
+        // scroll after video metadata loads
+        vid.addEventListener('loadedmetadata', () => { area.scrollTop = area.scrollHeight; });
+        mediaWrap.appendChild(vid);
+      } else {
+        const img = document.createElement('img');
+        img.src = msg.mediaUrl;
+        img.style.cssText = 'max-width:260px;max-height:200px;border-radius:10px;display:block;cursor:pointer;object-fit:cover';
+        img.addEventListener('click', () => openLightbox(msg.mediaUrl, 'image', msg.mediaName));
+        // scroll AFTER image fully loaded so height is known
+        img.addEventListener('load', () => { area.scrollTop = area.scrollHeight; });
+        mediaWrap.appendChild(img);
+      }
+      // ── NO save button here — use lightbox to save ──
+      body.appendChild(mediaWrap);
+    }
+
+    div.appendChild(av);
+    div.appendChild(body);
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  };
+  db.ref(path).limitToLast(60).on('child_added', fn);
+  messagesListener = { path, fn };
+}
+
+async function sendMessage() {
+  const inp = document.getElementById('mainChatInp');
+  const text = inp ? inp.value.trim() : '';
+  const media = window._pendingMedia || [];
+  if (!text && !media.length) return;
+  if (!currentServer || !currentChannel) return;
+  if (inp) { inp.value = ''; inp.style.height = ''; }
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn) sendBtn.classList.remove('active');
+  // Clear media preview
+  window._pendingMedia = [];
+  const preview = document.getElementById('mediaPreviewArea');
+  if (preview) { preview.innerHTML = ''; preview.style.display = 'none'; }
+  const sv = servers[currentServer];
+  const memberInfo = sv?.members?.[currentUser.uid];
+  const role = memberInfo?.role || 'member';
+  const msgBase = {
+    uid: currentUser.uid,
+    name: userProfile.displayName || 'مستخدم',
+    ts: Date.now(), role
+  };
+  // Send text message
+  if (text) {
+    await db.ref('messages/' + currentServer + '/' + currentChannel).push({ ...msgBase, text });
+  }
+  // Send each media as separate message
+  for (const m of media) {
+    await db.ref('messages/' + currentServer + '/' + currentChannel).push({
+      ...msgBase,
+      text: '',
+      mediaUrl: m.dataUrl,
+      mediaType: m.type,
+      mediaName: m.name
+    });
+  }
+}
+
+function showVoiceChannel(sid, cid, ch) {
+  cleanupMessagesListener();
+  cleanupVoiceListener();
+  showView('voice');
+  voiceChannel = { sid, cid, name: ch.name };
+  const nameEl = document.getElementById('voiceViewName');
+  if (nameEl) nameEl.textContent = ch.name;
+  const joinBtn = document.getElementById('voiceJoinBtn');
+  const leaveBtn = document.getElementById('voiceLeaveBtn');
+  if (joinBtn) joinBtn.style.display = '';
+  if (leaveBtn) leaveBtn.style.display = 'none';
+  const logEl = document.getElementById('voiceLog');
+  if (logEl) logEl.textContent = 'جاهز...\n';
+
+  const voicePath = 'voice/' + sid + '/' + cid;
+  voiceDbListener = voicePath;
+  db.ref(voicePath).on('value', snap => {
+    const users = snap.val() || {};
+    const ul = document.getElementById('voiceUsersList');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (Object.keys(users).length === 0) {
+      ul.innerHTML = '<div style="text-align:center;padding:16px;color:#6a8a80;font-size:13px">لا يوجد أحد في القناة</div>';
+    } else {
+      Object.entries(users).forEach(([uid, u]) => {
+        const div = document.createElement('div');
+        div.className = 'voice-user';
+        div.innerHTML = `
+          <div class="voice-user-av">${(u.name||'?')[0]}</div>
+          <div class="voice-user-name">${escHtml(u.name||'مستخدم')}</div>
+          ${u.muted ? '<span style="font-size:16px">🔇</span>' : '<div class="voice-indicator"></div>'}
+        `;
+        ul.appendChild(div);
+      });
+    }
+  });
+}
+
+async function selectMicrophone() {
+  try {
+    // Must request permission first, otherwise browser returns empty/unlabeled list
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+    const devices = await AgoraRTC.getMicrophones();
+    if (!devices || devices.length === 0) {
+      toast('❌ لا يوجد ميكروفون متاح');
+      return;
+    }
+    if (devices.length === 1) {
+      selectedMicDeviceId = devices[0].deviceId;
+      toast('🎤 تم اختيار: ' + (devices[0].label || 'الميكروفون الافتراضي'));
+      return;
+    }
+    const names = devices.map((d,i) => `${i+1}. ${d.label||'ميكروفون '+(i+1)}`).join('\n');
+    const choice = prompt('اختر رقم الميكروفون:\n' + names);
+    const idx = parseInt(choice) - 1;
+    if (idx >= 0 && idx < devices.length) {
+      selectedMicDeviceId = devices[idx].deviceId;
+      toast('✅ تم اختيار: ' + (devices[idx].label || 'ميكروفون'));
+    }
+  } catch(e) {
+    toast('❌ لا يمكن الوصول للميكروفون: ' + (e.message||''));
+  }
+}
+
+async function joinVoice() {
+  if (!voiceChannel || !agoraClient) return;
+  log('🎙️ بدء الانضمام...');
+  toast('⏳ جاري الانضمام...');
+  try {
+    // Request mic permission first
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream.getTracks().forEach(t => t.stop());
+
+    const micConfig = { encoderConfig: 'speech_standard' };
+    if (selectedMicDeviceId) micConfig.microphoneId = selectedMicDeviceId;
+    localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack(micConfig);
+
+    // ── CRITICAL FIX: unique channel name per server + channel ──
+    // Previously all rooms used the hardcoded string 'voice'
+    const channelName = (voiceChannel.sid + '_' + voiceChannel.cid)
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .substring(0, 64);
+
+    // ── CRITICAL FIX: use Firebase UID mapped to a stable integer ──
+    // Random UID caused collisions when rejoining; map uid string to a number
+    const uidHash = Math.abs(currentUser.uid.split('').reduce((a,c) => (a<<5)-a+c.charCodeAt(0), 0)) % 999999 + 1;
+
+    const token = await getAgoraToken(channelName, uidHash);
+    if (!token) { toast('❌ فشل الحصول على Token'); return; }
+
+    // ── Bind user-published BEFORE joining ──
+    agoraClient.off('user-published'); // remove stale listeners
+    agoraClient.on('user-published', async (user, mediaType) => {
+      try {
+        await agoraClient.subscribe(user, mediaType);
+        if (mediaType === 'audio') {
+          user.audioTrack.play();
+          log('🔊 يسمع: UID ' + user.uid);
+        }
+      } catch(err) { log('⚠️ subscribe error: ' + err.message); }
+    });
+
+    agoraClient.on('user-unpublished', (user, mediaType) => {
+      if (mediaType === 'audio' && user.audioTrack) {
+        user.audioTrack.stop();
+      }
+    });
+
+    await agoraClient.join(AGORA_APP_ID, channelName, token, uidHash);
+    await agoraClient.publish([localAudioTrack]);
+    log('✅ انضممت بنجاح - Channel: ' + channelName + ' UID: ' + uidHash);
+
+    await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).set({
+      name: userProfile.displayName || 'مستخدم', muted: false, ts: Date.now()
+    });
+    db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).onDisconnect().remove();
+
+    const joinBtn = document.getElementById('voiceJoinBtn');
+    const leaveBtn = document.getElementById('voiceLeaveBtn');
+    if (joinBtn) joinBtn.style.display = 'none';
+    if (leaveBtn) leaveBtn.style.display = '';
+    document.getElementById('voiceConnectedBar').classList.add('show');
+    document.getElementById('vcChannelName').textContent = voiceChannel.name;
+    toast('🔊 انضممت للقناة الصوتية!');
+  } catch(e) {
+    console.error('Voice error:', e);
+    log('❌ خطأ: ' + e.message);
+    toast('❌ فشل الانضمام: ' + (e.message||'خطأ'));
+    if (localAudioTrack) { localAudioTrack.close(); localAudioTrack = null; }
+    try { await agoraClient.leave(); } catch(ex){}
+    agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  }
+}
+
+async function leaveVoice() {
+  if (!voiceChannel) return;
+  try {
+    if (localAudioTrack) {
+      localAudioTrack.stop();
+      localAudioTrack.close();
+      localAudioTrack = null;
+    }
+    if (agoraClient) {
+      agoraClient.off('user-published');
+      agoraClient.off('user-unpublished');
+      await agoraClient.leave();
+    }
+    await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid).remove();
+    db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid).off();
+    voiceChannel = null;
+    isMuted = false;
+    document.getElementById('voiceConnectedBar').classList.remove('show');
+    const joinBtn = document.getElementById('voiceJoinBtn');
+    const leaveBtn = document.getElementById('voiceLeaveBtn');
+    const muteBtn = document.getElementById('vcMuteBtn');
+    if (joinBtn) joinBtn.style.display = '';
+    if (leaveBtn) leaveBtn.style.display = 'none';
+    if (muteBtn) { muteBtn.textContent = '🎤'; muteBtn.classList.remove('muted'); }
+    toast('📵 غادرت القناة');
+    agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  } catch(e) {
+    console.error('leaveVoice error:', e);
+    agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+  }
+}
+
+async function toggleMute() {
+  if (!localAudioTrack) return;
+  isMuted = !isMuted;
+  await localAudioTrack.setEnabled(!isMuted);
+  const btn = document.getElementById('vcMuteBtn');
+  if (btn) { btn.textContent = isMuted ? '🔇' : '🎤'; btn.classList.toggle('muted', isMuted); }
+  if (voiceChannel) await db.ref('voice/' + voiceChannel.sid + '/' + voiceChannel.cid + '/' + currentUser.uid + '/muted').set(isMuted);
+  toast(isMuted ? '🔇 مكتوم' : '🎤 مفعّل');
+}
+
+let selectedChType = 'text';
+function selectChType(type) {
+  selectedChType = type;
+  const t = document.getElementById('chTypeText');
+  const v = document.getElementById('chTypeVoice');
+  if(t) t.className = 'ch-type-tab' + (type==='text'?' active':'');
+  if(v) v.className = 'ch-type-tab' + (type==='voice'?' active':'');
+}
+
+async function addChannel() {
+  const name = document.getElementById('chNameInp').value.trim();
+  if (!name) return;
+  const cid = 'ch_' + Date.now();
+  await db.ref('servers/' + currentServer + '/channels/' + cid).set({ name, type: selectedChType, position: 99 });
+  if (!servers[currentServer].channels) servers[currentServer].channels = {};
+  servers[currentServer].channels[cid] = { name, type: selectedChType, position: 99 };
+  document.getElementById('chNameInp').value = '';
+  renderChannels(currentServer);
+  closeModal('addChannelModal');
+  toast('✅ تمت إضافة القناة');
+}
+
+async function saveSettings() {
+  const name = document.getElementById('displayNameInp').value.trim();
+  if (!name) return;
+  userProfile.displayName = name;
+  await db.ref('users/' + currentUser.uid).update({ displayName: name });
+  updateUserPanel();
+  closeModal('settingsModal');
+  toast('✅ تم الحفظ');
+}
+
+async function doSignOut() {
+  if (localAudioTrack) localAudioTrack.close();
+  if (agoraClient) await agoraClient.leave();
+  await auth.signOut();
+}
+
+function openServerSettings() {
+  if (!currentServer || !servers[currentServer]) return;
+  const sv = servers[currentServer];
+  const isOwner = sv.ownerId === currentUser?.uid || sv.members?.[currentUser?.uid]?.role === 'owner';
+  const titleEl = document.getElementById('svSettingsTitle');
+  const addChBtn = document.getElementById('svSettingsAddCh');
+  const invBtn = document.getElementById('svSettingsInvite');
+  const leaveBtn = document.getElementById('svLeaveBtn');
+  const deleteBtn = document.getElementById('svDeleteBtn');
+  if (titleEl) titleEl.textContent = (sv.emoji||'') + ' ' + sv.name;
+  if (isOwner) {
+    if (addChBtn) addChBtn.style.display = '';
+    if (invBtn) invBtn.style.display = '';
+    if (leaveBtn) leaveBtn.style.display = 'none';
+    if (deleteBtn) deleteBtn.style.display = '';
+  } else {
+    if (addChBtn) addChBtn.style.display = 'none';
+    if (invBtn) invBtn.style.display = '';
+    if (leaveBtn) leaveBtn.style.display = '';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+  }
+  openModal('serverSettingsModal');
+}
+
+function openInvite() {
+  const sv = servers[currentServer];
+  if (!sv) return;
+  const linkEl = document.getElementById('inviteLink');
+  const codeEl = document.getElementById('inviteCodeDisplay');
+  if (linkEl) linkEl.textContent = location.origin + location.pathname + '?join=' + sv.inviteCode;
+  if (codeEl) codeEl.textContent = sv.inviteCode;
+  closeModal('serverSettingsModal');
+  openModal('inviteModal');
+}
+
+function copyInvite() {
+  const link = document.getElementById('inviteLink').textContent;
+  navigator.clipboard?.writeText(link).then(() => toast('📋 تم نسخ الرابط'));
+}
+
+function copyCode() {
+  const code = document.getElementById('inviteCodeDisplay').textContent;
+  navigator.clipboard?.writeText(code).then(() => toast('📋 تم نسخ الكود: ' + code));
+}
+
+function copyAdminCode() {
+  const code = userProfile.adminCode || '';
+  navigator.clipboard?.writeText(code).then(() => toast('📋 تم نسخ الكود: ' + code));
+}
+
+function openModal(id) { const el=document.getElementById(id); if(el) el.classList.add('show'); }
+function closeModal(id) { const el=document.getElementById(id); if(el) el.classList.remove('show'); }
+function openCreateServer() { openModal('createServerModal'); }
+function openJoinServer() { openModal('joinServerModal'); }
+function openAddChannel() { closeModal('serverSettingsModal'); openModal('addChannelModal'); }
+function openSettings() { updateUserPanel(); openModal('settingsModal'); }
+
+function openProfile() {
+  db.ref('users/' + currentUser.uid + '/avatar').once('value').then(snap => {
+    const av = document.getElementById('profileAvatar');
+    if (snap.val()) {
+      if(av) av.innerHTML = `<img src="${snap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    } else {
+      if(av) av.textContent = (userProfile.displayName||'?')[0];
+    }
+  });
+  const nameEl = document.getElementById('profileName');
+  const tagEl = document.getElementById('profileTag');
+  const codeEl = document.getElementById('profileAdminCode');
+  if(nameEl) nameEl.textContent = userProfile.displayName || '—';
+  if(tagEl) tagEl.textContent = '#' + (userProfile.tag || '0000');
+  if(codeEl) codeEl.textContent = userProfile.adminCode || '—';
+  const badge = document.getElementById('profileRoleBadge');
+  if (badge) {
+    if (currentServer && servers[currentServer]) {
+      const role = servers[currentServer].members?.[currentUser.uid]?.role;
+      if (role === 'owner') badge.innerHTML = '<span class="admin-badge">👑 مالك</span>';
+      else if (role === 'admin') badge.innerHTML = '<span class="admin-badge">🛡️ مشرف</span>';
+      else badge.innerHTML = '';
+    } else badge.innerHTML = '';
+  }
+  openModal('profileModal');
+}
+
+function confirmLeaveServer() {
+  if (!currentServer) return;
+  const sv = servers[currentServer];
+  const el = document.getElementById('confirmLeaveText');
+  if (el) el.textContent = `هل أنت متأكد أنك تريد مغادرة سيرفر "${sv?.name||''}"؟`;
+  // Close any open modal first
+  document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+  openModal('confirmLeaveModal');
+}
+
+async function doLeaveServer() {
+  if (!currentServer || !currentUser) return;
+  const sid = currentServer;
+  closeModal('confirmLeaveModal');
+  try {
+    await db.ref('servers/' + sid + '/members/' + currentUser.uid).remove();
+    await db.ref('users/' + currentUser.uid + '/servers/' + sid).remove();
+    delete servers[sid];
+    currentServer = null;
+    currentChannel = null;
+    renderServerList();
+    showHome();
+    toast('👋 غادرت السيرفر');
+  } catch(e) { toast('❌ فشل في المغادرة: ' + e.message); }
+}
+
+function confirmDeleteServer() {
+  if (!currentServer) return;
+  const sv = servers[currentServer];
+  const el = document.getElementById('confirmDeleteText');
+  if (el) el.textContent = `سيُحذف سيرفر "${sv?.name||''}" نهائياً لجميع الأعضاء. لا يمكن التراجع.`;
+  // Close any open modal first
+  document.querySelectorAll('.modal-bg.show').forEach(m => m.classList.remove('show'));
+  openModal('confirmDeleteModal');
+}
+
+async function doDeleteServer() {
+  if (!currentServer || !currentUser) return;
+  const sid = currentServer;
+  const sv = servers[sid];
+  if (!sv) return;
+  const isOwner = sv.ownerId === currentUser.uid || sv.members?.[currentUser.uid]?.role === 'owner';
+  if (!isOwner) { toast('❌ فقط المالك يمكنه الحذف'); return; }
+  closeModal('confirmDeleteModal');
+  try {
+    const members = sv.members || {};
+    await Promise.all(Object.keys(members).map(uid =>
+      db.ref('users/' + uid + '/servers/' + sid).remove()
+    ));
+    await db.ref('servers/' + sid).remove();
+    await db.ref('messages/' + sid).remove();
+    await db.ref('voice/' + sid).remove();
+    delete servers[sid];
+    currentServer = null;
+    currentChannel = null;
+    renderServerList();
+    showHome();
+    toast('🗑️ تم حذف السيرفر');
+  } catch(e) { toast('❌ فشل في الحذف: ' + e.message); }
+}
+
+// ════ MEDIA UPLOAD ════
+window._pendingMedia = []; // [{dataUrl, type, name}]
+
+function handleMediaSelect(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const sizeLimit = 5 * 1024 * 1024;
+  const preview = document.getElementById('mediaPreviewArea');
+  if (!preview) return;
+
+  files.forEach(file => {
+    if (file.size > sizeLimit) { toast('❌ الملف أكبر من 5MB: ' + file.name); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      const entry = { dataUrl, type: file.type.startsWith('video') ? 'video' : 'image', name: file.name };
+      window._pendingMedia.push(entry);
+
+      // Show preview area
+      preview.style.display = 'flex';
+
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;display:inline-flex;flex-shrink:0';
+
+      if (entry.type === 'video') {
+        const vid = document.createElement('video');
+        vid.src = dataUrl;
+        vid.style.cssText = 'height:72px;max-width:110px;border-radius:8px;object-fit:cover;display:block';
+        wrap.appendChild(vid);
+      } else {
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        img.style.cssText = 'height:72px;max-width:110px;border-radius:8px;object-fit:cover;display:block';
+        wrap.appendChild(img);
+      }
+
+      // Remove button
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.textContent = '✕';
+      rm.style.cssText = 'position:absolute;top:-5px;right:-5px;width:18px;height:18px;border-radius:50%;background:#c04040;color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;z-index:2;-webkit-tap-highlight-color:transparent';
+      rm.addEventListener('click', () => {
+        const idx = window._pendingMedia.indexOf(entry);
+        if (idx > -1) window._pendingMedia.splice(idx, 1);
+        wrap.remove();
+        if (!window._pendingMedia.length) preview.style.display = 'none';
+        const sendBtn = document.getElementById('sendBtn');
+        const inp = document.getElementById('mainChatInp');
+        if (sendBtn) sendBtn.classList.toggle('active', !!(window._pendingMedia.length || inp?.value.trim()));
+      });
+      wrap.appendChild(rm);
+      preview.appendChild(wrap);
+
+      // Activate send button
+      const sendBtn = document.getElementById('sendBtn');
+      if (sendBtn) sendBtn.classList.add('active');
+
+      // Scroll messages area to bottom so input stays visible
+      const area = document.getElementById('messagesArea');
+      if (area) setTimeout(() => { area.scrollTop = area.scrollHeight; }, 50);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+// ════ LIGHTBOX ════
+let _lightboxUrl = '', _lightboxType = '', _lightboxName = '';
+function openLightbox(url, type, name) {
+  _lightboxUrl = url; _lightboxType = type; _lightboxName = name || 'media';
+  const bg = document.getElementById('lightboxBg');
+  const img = document.getElementById('lightboxImg');
+  const vid = document.getElementById('lightboxVid');
+  if (!bg) return;
+  bg.style.display = 'flex';
+  if (type === 'video') {
+    if (img) img.style.display = 'none';
+    if (vid) { vid.src = url; vid.style.display = 'block'; }
+  } else {
+    if (vid) { vid.style.display = 'none'; vid.src = ''; }
+    if (img) { img.src = url; img.style.display = 'block'; }
+  }
+}
+function closeLightbox() {
+  const bg = document.getElementById('lightboxBg');
+  const vid = document.getElementById('lightboxVid');
+  if (bg) bg.style.display = 'none';
+  if (vid) { vid.pause(); vid.src = ''; }
+}
+function lightboxDownload() {
+  downloadMedia(_lightboxUrl, _lightboxName, _lightboxType);
+}
+
+// ════ MEDIA DOWNLOAD ════
+function downloadMedia(url, name, type) {
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    const ext = type === 'video' ? '.mp4' : '.jpg';
+    a.download = name.includes('.') ? name : name + ext;
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast('⬇️ جاري الحفظ...');
+  } catch(e) {
+    // Fallback: open in new tab
+    window.open(url, '_blank');
+  }
+}
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  // Force reflow before adding show class so CSS transition fires
+  el.getBoundingClientRect();
+  el.classList.add('show');
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 350);
+  }, 3000);
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function formatTime(ts) {
+  const d = new Date(ts);
+  // Detect Arabic locale and use it; fallback to 24h
+  try {
+    return d.toLocaleTimeString('ar-SA', {
+      hour: '2-digit', minute: '2-digit',
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Riyadh'
+    });
+  } catch(e) {
+    return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
+async function uploadAvatar(input) {
+  const file = input.files[0];
+  if (!file || !currentUser) return;
+  if (file.size > 3 * 1024 * 1024) { toast('❌ الصورة أكبر من 3MB'); return; }
+  toast('⏳ جاري رفع الصورة...');
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      // Compress to max 120x120 JPEG at 80% quality to keep DB size small
+      const compressed = await compressImage(e.target.result, 120, 0.8);
+      await db.ref('users/' + currentUser.uid + '/avatar').set(compressed);
+      userProfile.avatar = compressed;
+      const av = document.getElementById('profileAvatar');
+      if (av) av.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      // Also update bottom-left user panel avatar
+      const panelAv = document.getElementById('userPanelAvatar');
+      if (panelAv) panelAv.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      toast('✅ تم تحديث الصورة');
+    } catch(err) {
+      toast('❌ فشل رفع الصورة');
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressImage(dataUrl, maxSize, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      canvas.width = Math.round(img.width * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+function restoreLastServer() {
+  const lastSid = localStorage.getItem('awalem_lastServer');
+  if (lastSid && servers[lastSid]) selectServer(lastSid);
+  else {
+    const svKeys = Object.keys(servers);
+    if (svKeys.length > 0) selectServer(svKeys[svKeys.length - 1]);
+    else showHome();
+  }
+}
+
+
+
+
+</script>
+<!-- Image Lightbox -->
+<div id="lightboxBg" style="display:none;position:fixed;inset:0;z-index:9995;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;flex-direction:column;gap:12px" onclick="closeLightbox()">
+  <img id="lightboxImg" style="max-width:92vw;max-height:80vh;border-radius:12px;object-fit:contain;display:none">
+  <video id="lightboxVid" controls style="max-width:92vw;max-height:80vh;border-radius:12px;display:none"></video>
+  <div style="display:flex;gap:12px;margin-top:4px">
+    <button id="lightboxDl" type="button" style="padding:10px 24px;background:rgba(26,95,95,0.8);color:#fff;border:1px solid var(--gold);border-radius:10px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="event.stopPropagation();lightboxDownload()">⬇️ حفظ في الجهاز</button>
+    <button type="button" style="padding:10px 20px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:10px;font-family:Tajawal,sans-serif;font-size:14px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="closeLightbox()">✕ إغلاق</button>
+  </div>
+</div>
+
+</body>
+</html>
