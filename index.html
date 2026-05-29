@@ -199,7 +199,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
 .dm-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 8px; cursor: pointer; transition: .15s; position: relative; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .dm-item:hover { background: rgba(26,95,95,0.25); }
 .dm-item.active { background: rgba(26,95,95,0.4); }
-.dm-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,var(--teal),var(--acc)); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; position: relative; }
+.dm-av { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg,var(--teal),var(--acc)); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #fff; position: relative; overflow: hidden; }
 .dm-online { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; background: #3ba55c; border: 2px solid var(--bg); }
 .dm-name { font-size: 14px; font-weight: 700; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dm-unread { min-width: 18px; height: 18px; background: #e05050; border-radius: 9px; font-size: 10px; font-weight: 800; color: #fff; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
@@ -222,7 +222,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
 .members-title { font-size: 11px; font-weight: 800; color: var(--gold); padding: 12px 12px 6px; white-space: nowrap; }
 .member-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: .15s; }
 .member-item:hover { background: rgba(26,95,95,0.2); }
-.member-av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,var(--teal),var(--acc)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.member-av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,var(--teal),var(--acc)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0; overflow: hidden; }
 .member-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .member-role-badge { font-size: 9px; color: var(--gold); font-weight: 800; background: rgba(200,168,75,0.15); border-radius: 4px; padding: 1px 4px; }
 
@@ -325,6 +325,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
   border:2px solid var(--gold);
   cursor:pointer;display:flex;align-items:center;justify-content:center;
   font-size:15px;font-weight:800;color:#fff;position:relative;
+  overflow:hidden;
 }
 .up-av::after{
   content:'';position:absolute;bottom:1px;right:1px;
@@ -408,6 +409,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
   border:2px solid rgba(200,168,75,0.4);
   display:flex;align-items:center;justify-content:center;
   font-size:16px;font-weight:800;color:#fff;
+  overflow:hidden;
 }
 .msg-body{flex:1}
 .msg-meta{display:flex;gap:8px;margin-bottom:3px;align-items:baseline}
@@ -1085,6 +1087,10 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
         style="display:none;width:30px;height:30px;border-radius:8px;background:rgba(200,168,75,0.1);
         border:1px solid rgba(200,168,75,0.2);color:var(--gold);cursor:pointer;font-size:16px;
         -webkit-tap-highlight-color:transparent;flex-shrink:0">🔍</button>
+      <button id="membersToggleBtn" type="button" onclick="toggleMembersPanel()"
+        style="display:none;width:30px;height:30px;border-radius:8px;background:rgba(200,168,75,0.1);
+        border:1px solid rgba(200,168,75,0.2);color:var(--gold);cursor:pointer;font-size:16px;
+        -webkit-tap-highlight-color:transparent;flex-shrink:0;margin-right:2px" title="الأعضاء">👥</button>
     </div>
 
     <!-- Search Bar -->
@@ -1097,6 +1103,13 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
     </div>
 
     <div id="contentArea" style="flex:1;display:flex;overflow:hidden;position:relative">
+
+      <!-- Channel Select Placeholder -->
+      <div id="chSelectPlaceholder" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,#e8dcc8,#c8d8d0)">
+        <div class="ch-empty-icon">💬</div>
+        <div style="font-size:16px;font-weight:700;color:#1a3a3a">اختر قناة للبدء</div>
+        <div style="font-size:13px;color:#5a7a70">اختر قناة من القائمة على اليمين</div>
+      </div>
 
       <!-- Home View -->
       <div id="homeView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative">
@@ -1203,7 +1216,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
     <button class="modal-close" onclick="closeModal('createServerModal')">✕</button>
     <div class="modal-title">سيرفر جديد</div>
     <div class="modal-sub">أنشئ مجتمعك الخاص</div>
-    <input class="modal-inp" id="svNameInp" placeholder="اسم السيرفر">
+    <input class="modal-inp" id="svNameInp" placeholder="اسم السيرفر" onkeydown="if(event.key==='Enter')createServer()">
     <button class="modal-btn" onclick="createServer()">إنشاء</button>
   </div>
 </div>
@@ -1213,7 +1226,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
     <button class="modal-close" onclick="closeModal('joinServerModal')">✕</button>
     <div class="modal-title">انضم لسيرفر</div>
     <div class="modal-sub">أدخل كود الدعوة أو رابط الانضمام</div>
-    <input class="modal-inp" id="joinCodeInp" placeholder="كود الدعوة أو رابط الانضمام">
+    <input class="modal-inp" id="joinCodeInp" placeholder="كود الدعوة أو رابط الانضمام" onkeydown="if(event.key==='Enter')joinServer()">
     <button class="modal-btn" onclick="joinServer()">انضمام</button>
   </div>
 </div>
@@ -1260,7 +1273,7 @@ body{height:100vh;font-family:Tajawal,sans-serif;background:var(--bg);color:var(
       <div class="ch-type-tab active" id="chTypeText" onclick="selectChType('text')">💬 نصية</div>
       <div class="ch-type-tab" id="chTypeVoice" onclick="selectChType('voice')">🔊 صوتية</div>
     </div>
-    <input class="modal-inp" id="chNameInp" placeholder="اسم القناة">
+    <input class="modal-inp" id="chNameInp" placeholder="اسم القناة" onkeydown="if(event.key==='Enter')addChannel()">
     <button class="modal-btn" onclick="addChannel()">إضافة</button>
   </div>
 </div>
@@ -1439,6 +1452,10 @@ async function loadUserProfile() {
     userProfile.adminCode = generateAdminCode();
     await db.ref('users/' + currentUser.uid + '/adminCode').set(userProfile.adminCode);
   }
+  // Pre-load own avatar into cache
+  if (userProfile.avatar) {
+    _avatarCache[currentUser.uid] = userProfile.avatar;
+  }
   updateUserPanel();
 }
 
@@ -1450,7 +1467,14 @@ function generateAdminCode() {
 }
 
 function updateUserPanel() {
-  document.getElementById('upAv').textContent = (userProfile.displayName||'?')[0];
+  const upAv = document.getElementById('upAv');
+  if (upAv) {
+    if (userProfile.avatar) {
+      upAv.innerHTML = `<img src="${userProfile.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    } else {
+      upAv.textContent = (userProfile.displayName||'?')[0];
+    }
+  }
   document.getElementById('upName').textContent = userProfile.displayName || '—';
   document.getElementById('upTag').textContent = '#' + (userProfile.tag || '0000');
   const dni = document.getElementById('displayNameInp');
@@ -1529,8 +1553,8 @@ function listenServers() {
   if (!currentUser) return;
   db.ref('users/' + currentUser.uid + '/servers').on('value', snap => {
     const sids = snap.val() || {};
-    // Reset servers to avoid stale/duplicated entries
-    servers = {};
+    // Remove servers user is no longer in, keep others intact
+    Object.keys(servers).forEach(sid => { if (!sids[sid]) delete servers[sid]; });
     Promise.all(Object.keys(sids).map(sid =>
       db.ref('servers/' + sid).once('value').then(s => {
         if (s.val()) servers[sid] = s.val();
@@ -1667,7 +1691,7 @@ async function createServer() {
   const sv = {
     name, emoji: '🌍', inviteCode,
     ownerId: currentUser.uid,
-    members: { [currentUser.uid]: { role: 'owner' } },
+    members: { [currentUser.uid]: { role: 'owner', name: userProfile.displayName || 'مستخدم', joinedAt: Date.now() } },
     channels: {
       ['ch_' + Date.now()]: { name: 'عام', type: 'text', position: 0 },
       ['ch_' + (Date.now()+1)]: { name: 'صوتي عام', type: 'voice', position: 1 }
@@ -1963,6 +1987,9 @@ function showView(name) {
     if (bar?.classList.contains('show')) toggleSearch();
     document.getElementById('membersPanel')?.classList.remove('open');
   }
+  // 'none' → show empty channel-select placeholder inside mainContent
+  const placeholder = document.getElementById('chSelectPlaceholder');
+  if (placeholder) placeholder.style.display = name === 'none' ? 'flex' : 'none';
 }
 
 function selectChannel(sid, cid, ch) {
@@ -2077,6 +2104,42 @@ function mobOpenSvSettings() { if (currentServer) openServerSettings(); }
 function renderMobSvPills() {}
 
 
+// ════ AVATAR CACHE ════
+const _avatarCache = {}; // uid → dataUrl | 'none'
+
+function loadAvatar(uid, targetEl) {
+  if (!uid) return;
+  targetEl._uid = uid; // store for later live-updates
+  // If cached, apply immediately
+  if (_avatarCache[uid] !== undefined) {
+    if (_avatarCache[uid] !== 'none') {
+      targetEl.textContent = '';
+      targetEl.style.padding = '0';
+      targetEl.innerHTML = `<img src="${_avatarCache[uid]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }
+    return;
+  }
+  // Mark as loading to avoid duplicate requests
+  _avatarCache[uid] = 'none';
+  db.ref('users/' + uid + '/avatar').once('value').then(snap => {
+    if (snap.val()) {
+      _avatarCache[uid] = snap.val();
+      // Update this element
+      targetEl.textContent = '';
+      targetEl.style.padding = '0';
+      targetEl.innerHTML = `<img src="${snap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      // Update all other elements with same uid already in DOM
+      document.querySelectorAll('.msg-av').forEach(el => {
+        if (el._uid === uid && el !== targetEl) {
+          el.textContent = '';
+          el.style.padding = '0';
+          el.innerHTML = `<img src="${snap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        }
+      });
+    }
+  }).catch(() => {});
+}
+
 // ════ MESSAGES ════
 const PAGE_SIZE = 40;
 let _oldestMsgKey = null;
@@ -2095,17 +2158,7 @@ function buildMsgDiv(msg, key) {
   const av = document.createElement('div');
   av.className = 'msg-av';
   av.textContent = (msg.name||'?')[0];
-
-  // Load sender's avatar from Firebase if available
-  if (msg.uid) {
-    db.ref('users/' + msg.uid + '/avatar').once('value').then(avSnap => {
-      if (avSnap.val()) {
-        av.textContent = '';
-        av.style.padding = '0';
-        av.innerHTML = `<img src="${avSnap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      }
-    }).catch(() => {});
-  }
+  if (msg.uid) loadAvatar(msg.uid, av);
 
   // ── Body ──
   const body = document.createElement('div');
@@ -2312,6 +2365,8 @@ async function loadMoreMessages() {
 
   // Insert at top (after load more button)
   const firstMsg = area.querySelector('.msg-group');
+  // Save oldest key BEFORE reversing
+  const oldestKey = entries[0][0];
   entries.reverse().forEach(([key, msg]) => {
     if (area.querySelector(`[data-key="${key}"]`)) return;
     const div = buildMsgDiv(msg, key);
@@ -2319,7 +2374,7 @@ async function loadMoreMessages() {
     else area.appendChild(div);
   });
 
-  _oldestMsgKey = entries[entries.length-1][0]; // now reversed so this is oldest
+  _oldestMsgKey = oldestKey;
   // Maintain scroll position
   area.scrollTop = area.scrollHeight - prevHeight;
 
@@ -2600,6 +2655,16 @@ async function saveSettings() {
   if (!name) return;
   userProfile.displayName = name;
   await db.ref('users/' + currentUser.uid).update({ displayName: name });
+  // Update name in all servers the user is a member of
+  const updates = {};
+  Object.keys(servers).forEach(sid => {
+    if (servers[sid]?.members?.[currentUser.uid]) {
+      updates['servers/' + sid + '/members/' + currentUser.uid + '/name'] = name;
+      // Update local cache too
+      servers[sid].members[currentUser.uid].name = name;
+    }
+  });
+  if (Object.keys(updates).length) await db.ref().update(updates);
   updateUserPanel();
   closeModal('settingsModal');
   toast('✅ تم الحفظ');
@@ -2669,14 +2734,14 @@ function openAddChannel() { closeModal('serverSettingsModal'); openModal('addCha
 function openSettings() { updateUserPanel(); openModal('settingsModal'); }
 
 function openProfile() {
-  db.ref('users/' + currentUser.uid + '/avatar').once('value').then(snap => {
-    const av = document.getElementById('profileAvatar');
-    if (snap.val()) {
-      if(av) av.innerHTML = `<img src="${snap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  const av = document.getElementById('profileAvatar');
+  if (av) {
+    if (userProfile.avatar) {
+      av.innerHTML = `<img src="${userProfile.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     } else {
-      if(av) av.textContent = (userProfile.displayName||'?')[0];
+      av.textContent = (userProfile.displayName||'?')[0];
     }
-  });
+  }
   const nameEl = document.getElementById('profileName');
   const tagEl = document.getElementById('profileTag');
   const codeEl = document.getElementById('profileAdminCode');
@@ -2747,6 +2812,7 @@ async function doDeleteServer() {
     await db.ref('servers/' + sid).remove();
     await db.ref('messages/' + sid).remove();
     await db.ref('voice/' + sid).remove();
+    await db.ref('typing/' + sid).remove();
     delete servers[sid];
     currentServer = null;
     currentChannel = null;
@@ -2946,17 +3012,30 @@ let _dmListener = null;
 let _dmTypingTimer = null;
 let _dmTypingListener = null;
 let _dmReplyTo = null;
-const _dmUnread = {};
+let _dmCache = {};
+let _dmUnread = {};
 
 function getDmId(uid1, uid2) {
   return [uid1, uid2].sort().join('_');
 }
 
-function openNewDM() {
+async function openNewDM() {
   if (!currentServer || !servers[currentServer]) { toast('افتح سيرفراً أولاً لاختيار عضو'); return; }
   const members = servers[currentServer]?.members || {};
-  const others = Object.entries(members).filter(([uid]) => uid !== currentUser?.uid);
-  if (!others.length) { toast('لا يوجد أعضاء آخرون'); return; }
+  const otherUids = Object.keys(members).filter(uid => uid !== currentUser?.uid);
+  if (!otherUids.length) { toast('لا يوجد أعضاء آخرون'); return; }
+
+  // Fetch display names for members that don't have name stored
+  const others = await Promise.all(otherUids.map(async uid => {
+    const m = members[uid];
+    let name = m.name || '';
+    if (!name) {
+      const snap = await db.ref('users/' + uid + '/displayName').once('value');
+      name = snap.val() || 'مستخدم';
+    }
+    return [uid, { ...m, name }];
+  }));
+
   // Show member picker
   const popup = document.createElement('div');
   popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;display:flex;align-items:center;justify-content:center';
@@ -2966,7 +3045,15 @@ function openNewDM() {
   others.forEach(([uid, m]) => {
     const btn = document.createElement('div');
     btn.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent';
-    btn.innerHTML = `<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--acc));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff">${(m.name||'?')[0]}</div><div style="font-size:15px;font-weight:700;color:var(--text)">${escHtml(m.name||'عضو')}</div>`;
+    const avDiv = document.createElement('div');
+    avDiv.style.cssText = 'width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--acc));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden';
+    avDiv.textContent = (m.name||'?')[0];
+    loadAvatar(uid, avDiv);
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-size:15px;font-weight:700;color:var(--text)';
+    nameDiv.textContent = escHtml(m.name||'عضو');
+    btn.appendChild(avDiv);
+    btn.appendChild(nameDiv);
     btn.addEventListener('mouseover', () => btn.style.background = 'rgba(26,95,95,0.3)');
     btn.addEventListener('mouseout', () => btn.style.background = '');
     btn.addEventListener('click', () => { popup.remove(); openDM(uid, m.name || 'عضو'); });
@@ -3052,17 +3139,7 @@ function buildDmMsgDiv(msg, key, otherUid, otherName) {
   const av = document.createElement('div');
   av.className = 'msg-av';
   av.textContent = (msg.name||'?')[0];
-
-  // Load sender's avatar from Firebase
-  if (msg.uid) {
-    db.ref('users/' + msg.uid + '/avatar').once('value').then(avSnap => {
-      if (avSnap.val()) {
-        av.textContent = '';
-        av.style.padding = '0';
-        av.innerHTML = `<img src="${avSnap.val()}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      }
-    }).catch(() => {});
-  }
+  if (msg.uid) loadAvatar(msg.uid, av);
 
   const body = document.createElement('div');
   body.className = 'msg-body';
@@ -3133,9 +3210,14 @@ async function sendDM() {
   if (_dmReplyTo) { msg.replyTo = { ..._dmReplyTo }; clearDmReply(); }
 
   await db.ref('dm_messages/' + dmId).push(msg);
-  // Track DM conversation for both users
-  await db.ref('dms/' + currentUser.uid + '/' + _currentDmUid).set({ name: (await db.ref('users/' + _currentDmUid + '/displayName').once('value')).val() || 'مستخدم', ts: Date.now() });
-  await db.ref('dms/' + _currentDmUid + '/' + currentUser.uid).set({ name: userProfile.displayName || 'مستخدم', ts: Date.now() });
+
+  // Get other user name from cache if available, otherwise from dms cache
+  const otherName = _dmCache[_currentDmUid]?.name ||
+    (await db.ref('users/' + _currentDmUid + '/displayName').once('value')).val() || 'مستخدم';
+
+  const now = Date.now();
+  await db.ref('dms/' + currentUser.uid + '/' + _currentDmUid).set({ name: otherName, ts: now });
+  await db.ref('dms/' + _currentDmUid + '/' + currentUser.uid).set({ name: userProfile.displayName || 'مستخدم', ts: now });
 }
 
 async function deleteDmMessage(key, otherUid) {
@@ -3166,6 +3248,7 @@ function clearDmUnread(uid) {
 function listenDMs() {
   if (!currentUser) return;
   db.ref('dms/' + currentUser.uid).on('value', snap => {
+    _dmCache = snap.val() || {};
     renderDmList();
   });
 }
@@ -3173,25 +3256,38 @@ function listenDMs() {
 function renderDmList() {
   const container = document.getElementById('dmList');
   if (!container) return;
-  db.ref('dms/' + currentUser.uid).once('value').then(snap => {
-    const dms = snap.val() || {};
-    container.innerHTML = '';
-    if (!Object.keys(dms).length) {
-      container.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 14px">لا توجد محادثات بعد</div>';
-      return;
+  const dms = _dmCache;
+  container.innerHTML = '';
+  if (!Object.keys(dms).length) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 14px">لا توجد محادثات بعد</div>';
+    return;
+  }
+  Object.entries(dms).sort((a,b) => (b[1].ts||0)-(a[1].ts||0)).forEach(([uid, info]) => {
+    const item = document.createElement('div');
+    item.className = 'dm-item' + (_currentDmUid === uid ? ' active' : '');
+    const unread = _dmUnread[uid] || 0;
+
+    const avDiv = document.createElement('div');
+    avDiv.className = 'dm-av';
+    avDiv.textContent = (info.name||'?')[0];
+    loadAvatar(uid, avDiv);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'dm-name';
+    nameDiv.textContent = info.name || 'مستخدم';
+
+    item.appendChild(avDiv);
+    item.appendChild(nameDiv);
+
+    if (unread > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'dm-unread';
+      badge.textContent = unread > 99 ? '99+' : unread;
+      item.appendChild(badge);
     }
-    Object.entries(dms).sort((a,b) => (b[1].ts||0)-(a[1].ts||0)).forEach(([uid, info]) => {
-      const item = document.createElement('div');
-      item.className = 'dm-item' + (_currentDmUid === uid ? ' active' : '');
-      const unread = _dmUnread[uid] || 0;
-      item.innerHTML = `
-        <div class="dm-av">${(info.name||'?')[0]}</div>
-        <div class="dm-name">${escHtml(info.name||'مستخدم')}</div>
-        ${unread > 0 ? `<div class="dm-unread">${unread > 99 ? '99+' : unread}</div>` : ''}
-      `;
-      item.addEventListener('click', () => openDM(uid, info.name || 'مستخدم'));
-      container.appendChild(item);
-    });
+
+    item.addEventListener('click', () => openDM(uid, info.name || 'مستخدم'));
+    container.appendChild(item);
   });
 }
 
@@ -3203,25 +3299,51 @@ function toggleMembersPanel() {
   if (panel.classList.contains('open')) renderMembersList();
 }
 
-function renderMembersList() {
+async function renderMembersList() {
   const container = document.getElementById('membersList');
   if (!container || !currentServer) return;
   const members = servers[currentServer]?.members || {};
-  container.innerHTML = '';
+  container.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:var(--muted)">⏳ جاري التحميل...</div>';
   const roleOrder = { owner: 0, admin: 1, member: 2 };
-  const sorted = Object.entries(members).sort((a,b) => (roleOrder[a[1].role]||2) - (roleOrder[b[1].role]||2));
+
+  // Fetch missing names
+  const enriched = await Promise.all(Object.entries(members).map(async ([uid, m]) => {
+    let name = m.name || '';
+    if (!name) {
+      const snap = await db.ref('users/' + uid + '/displayName').once('value');
+      name = snap.val() || 'مستخدم';
+    }
+    return [uid, { ...m, name }];
+  }));
+
+  const sorted = enriched.sort((a,b) => (roleOrder[a[1].role]||2) - (roleOrder[b[1].role]||2));
+  container.innerHTML = '';
   sorted.forEach(([uid, m]) => {
     const item = document.createElement('div');
     item.className = 'member-item';
-    const roleLabel = m.role === 'owner' ? '👑 مالك' : m.role === 'admin' ? '🛡️ أدمن' : '';
-    item.innerHTML = `
-      <div class="member-av">${(m.name||'?')[0]}</div>
-      <div class="member-name">${escHtml(m.name||'عضو')}</div>
-      ${roleLabel ? `<div class="member-role-badge">${roleLabel}</div>` : ''}
-    `;
-    // Click to DM
+
+    const avDiv = document.createElement('div');
+    avDiv.className = 'member-av';
+    avDiv.textContent = (m.name||'?')[0];
+    loadAvatar(uid, avDiv);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'member-name';
+    nameDiv.textContent = m.name || 'عضو';
+
+    item.appendChild(avDiv);
+    item.appendChild(nameDiv);
+
+    if (m.role === 'owner' || m.role === 'admin') {
+      const badge = document.createElement('div');
+      badge.className = 'member-role-badge';
+      badge.textContent = m.role === 'owner' ? '👑 مالك' : '🛡️ أدمن';
+      item.appendChild(badge);
+    }
+
     if (uid !== currentUser?.uid) {
       item.title = 'رسالة خاصة';
+      item.style.cursor = 'pointer';
       item.addEventListener('click', () => {
         openDM(uid, m.name || 'عضو');
         document.getElementById('membersPanel').classList.remove('open');
@@ -3559,11 +3681,20 @@ async function uploadAvatar(input) {
       const compressed = await compressImage(e.target.result, 120, 0.8);
       await db.ref('users/' + currentUser.uid + '/avatar').set(compressed);
       userProfile.avatar = compressed;
+      // Update avatar cache so messages update instantly
+      _avatarCache[currentUser.uid] = compressed;
+      // Update profile modal avatar
       const av = document.getElementById('profileAvatar');
       if (av) av.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      // Also update bottom-left user panel avatar
-      const panelAv = document.getElementById('userPanelAvatar');
-      if (panelAv) panelAv.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      // Update bottom user panel avatar
+      const upAv = document.getElementById('upAv');
+      if (upAv) upAv.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      // Update all existing message avatars for this user
+      document.querySelectorAll('.msg-av').forEach(el => {
+        if (el._uid === currentUser.uid) {
+          el.innerHTML = `<img src="${compressed}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        }
+      });
       toast('✅ تم تحديث الصورة');
     } catch(err) {
       toast('❌ فشل رفع الصورة');
